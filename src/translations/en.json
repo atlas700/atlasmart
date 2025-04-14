@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "localeSelector": {
+      "message": "Choose a language."
+    }
+  },
+  "views": {
+    "home": {
+      "title": "High-Quality Products You Can Trust, Every Time.",
+      "body": " Welcome to LocalMart 🛍 - your trusted source for top-quality products. We check everything to make sure it&apos;s the best you can find!"
+    }
+  }
+}
