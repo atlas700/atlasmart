@@ -14,7 +14,6 @@ export const ReturnItemTable = pgTable(
       .references(() => OrderItemTable.id, { onDelete: "cascade" }),
     returnRequestId: uuid()
       .notNull()
-      .unique()
       .references(() => ReturnRequestTable.id, { onDelete: "cascade" }),
 
     createdAt,
@@ -39,9 +38,9 @@ export const ReturnItemRelationships = relations(
       fields: [ReturnItemTable.orderItemId],
       references: [OrderItemTable.id],
     }),
-    returnRequest: one(StoreTable, {
+    returnRequest: one(ReturnRequestTable, {
       fields: [ReturnItemTable.returnRequestId],
-      references: [StoreTable.id],
+      references: [ReturnRequestTable.id],
     }),
   })
 );

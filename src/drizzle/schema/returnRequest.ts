@@ -15,7 +15,6 @@ export const ReturnRequestTable = pgTable(
     reason: text().notNull(),
     status: requestStatusesEnum().notNull().default("REVIEWING"),
     orderId: uuid()
-      .unique()
       .notNull()
       .references(() => OrderTable.id, { onDelete: "cascade" }),
 

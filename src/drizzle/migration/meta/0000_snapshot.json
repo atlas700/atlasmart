@@ -1,5 +1,5 @@
 {
-  "id": "d576ac01-eda4-4bd8-ba86-28cbefee5606",
+  "id": "fb70f5d9-7690-4823-910d-00068241b7db",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1361,15 +1361,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "return_item_returnRequestId_unique": {
-          "name": "return_item_returnRequestId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "returnRequestId"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1453,15 +1445,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "return_request_orderId_unique": {
-          "name": "return_request_orderId_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "orderId"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
