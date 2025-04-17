@@ -1,9 +1,10 @@
-import { i18nConfig, Locale } from '../../../i18n';
+import { i18nConfig, Locale } from "../../../i18n";
 
 // Import translation files manually from @/translations path as modules
 const translations = {
-  en: () => import('@/translations/en.json').then((module) => module.default),
-  ps: () => import('@/translations/ps.json').then((module) => module.default),
+  en: () => import("@/translations/en.json").then((module) => module.default),
+  ps: () => import("@/translations/ps.json").then((module) => module.default),
+  fr: () => import("@/translations/fr.json").then((module) => module.default),
 };
 
 // Create a type from imported translation file that corresponds to the default locale.

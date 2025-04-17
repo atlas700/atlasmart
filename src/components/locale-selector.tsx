@@ -1,9 +1,9 @@
 "use client";
 
-import { i18nConfig, Locale } from "../../i18n";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { i18nConfig, Locale } from "../../i18n";
 
 interface Props {
   message: string;
@@ -36,10 +36,11 @@ export default function LocaleSelector({ message }: Props) {
   const localeInfo = {
     en: { native: "English", default: "English" },
     ps: { native: "پښتو", default: "Pashto" },
+    fr: { native: "دری", default: "Dari" },
   };
 
   return (
-    <>
+    <div dir="LTR">
       {/* Language button. */}
       <button
         className={`flex h-12 w-12 items-center justify-center rounded-lg hover:bg-neutral-100 ${
@@ -51,7 +52,7 @@ export default function LocaleSelector({ message }: Props) {
       </button>
 
       {isOpen && (
-        <div className="absolute translate-y-28 ">
+        <div className="absolute translate-y-8 -translate-x-16 ">
           <div className='py-1" flex w-48 flex-col rounded-md border border-neutral-200 bg-white'>
             <div className="px-3 py-2">
               <h1 className="text-md font-medium">{message}</h1>
@@ -76,7 +77,7 @@ export default function LocaleSelector({ message }: Props) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

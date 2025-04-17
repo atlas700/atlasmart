@@ -14,7 +14,10 @@ export default async function NavBar({ locale }: { locale: Locale }) {
   const { user } = { user: { id: "1", role: "ADMIN" } };
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-40 bg-white h-16 flex items-center border-b border-gray-200 shadow-sm">
+    <nav
+      dir="LTR"
+      className="fixed top-0 inset-x-0 z-40 bg-white h-16 flex items-center border-b border-gray-200 shadow-sm"
+    >
       <Container>
         <div className="flex items-center justify-between gap-5">
           <Logo />

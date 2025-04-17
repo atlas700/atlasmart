@@ -4,7 +4,7 @@ export const i18nConfig = {
   // Sets a default locale.
   defaultLocale: "en",
   // Supported locales found in @/translations directory.
-  locales: ["en", "ps"],
+  locales: ["en", "ps", "fr"],
 } as const;
 
 // Exports a type from the i18nConfig, can represent any locale in locales array.
