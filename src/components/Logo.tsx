@@ -14,7 +14,7 @@ const Logo = () => {
       <div className="flex items-center gap-2">
         <span className={cn("text-4xl font-semibold", font.className)}>🛍</span>
 
-        <span className="font-medium">LocalMart</span>
+        <span className="font-medium">AtlasMart</span>
       </div>
     </Link>
   );

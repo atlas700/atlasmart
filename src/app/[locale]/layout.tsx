@@ -1,7 +1,10 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { i18nConfig, Locale } from "../../../i18n";
 import "../globals.css";
+import { Suspense } from "react";
+import QueryProvider from "@/providers/query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,12 +36,21 @@ export default async function RootLayout({ children, params }: Props) {
   const { locale } = await params;
 
   return (
-    <html lang={locale} dir={locale === "ps" ? "RTL" : "LTR"}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <Suspense>
+      <ClerkProvider>
+        <QueryProvider>
+          <html
+            lang={locale}
+            dir={locale === "ps" || locale === "fr" ? "RTL" : "LTR"}
+          >
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+              {children}
+            </body>
+          </html>
+        </QueryProvider>
+      </ClerkProvider>
+    </Suspense>
   );
 }

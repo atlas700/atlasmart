@@ -1,62 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { Locale, i18nConfig } from "../i18n";
 import { getMatchingLocale } from "./lib/i18n/getMatchingLocale";
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+// Routes that are public (no auth required)
 const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/api(.*)",
-  "/courses/:courseId/lessons/:lessonId",
-  "/products(.*)",
+  "/:locale/sign-in(.*)",
+  "/:locale/sign-up(.*)",
+  "/api(.*)", // Public APIs like webhooks
+  "/:locale",
 ]);
 
+// Routes that require admin role
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
-
-// export default function middleware(request: NextRequest) {
-// const localeNotFound: boolean = i18nConfig.locales.every(
-//   (locale: Locale) =>
-//     !request.nextUrl.pathname.startsWith(`/${locale}/`) &&
-//     request.nextUrl.pathname !== `/${locale}`
-// );
-// if (localeNotFound) {
-//   const newLocale: Locale = getMatchingLocale(request);
-//   return NextResponse.redirect(
-//     new URL(`/${newLocale}/${request.nextUrl.pathname}`, request.url)
-//   );
-// }
-// }
 
 export default clerkMiddleware(async (auth, req) => {
   const request = req as NextRequest;
-  const localeNotFound: boolean = i18nConfig.locales.every(
+  const { pathname } = request.nextUrl;
+
+  // ✅ Skip static files, _next, clerk, and api from locale/auth logic
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/clerk/") ||
+    pathname.match(/\.(.*)$/) // skip static assets like .jpg, .css, etc.
+  ) {
+    return NextResponse.next();
+  }
+
+  // ✅ Locale redirect if the path does not include a valid locale prefix
+  const localeNotFound = i18nConfig.locales.every(
     (locale: Locale) =>
-      !request.nextUrl.pathname.startsWith(`/${locale}/`) &&
-      request.nextUrl.pathname !== `/${locale}`
+      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   );
+
   if (localeNotFound) {
     const newLocale: Locale = getMatchingLocale(request);
+    const pathnameWithoutLeadingSlash = pathname.startsWith("/")
+      ? pathname.slice(1)
+      : pathname;
     return NextResponse.redirect(
-      new URL(`/${newLocale}/${request.nextUrl.pathname}`, request.url)
+      new URL(`/${newLocale}/${pathnameWithoutLeadingSlash}`, request.url)
     );
   }
-  if (isAdminRoute(req)) {
-    const user = await auth.protect();
-    if (user.sessionClaims.role !== "admin") {
+
+  // ✅ Protect all non-public routes
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+
+  // ✅ Protect admin routes and check role
+  if (isAdminRoute(request)) {
+    const { sessionClaims } = await auth.protect();
+    if (sessionClaims.role !== "ADMIN") {
       return new NextResponse(null, { status: 404 });
     }
   }
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
+
+  return NextResponse.next();
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
+    // Run on everything except static assets and internals
+    "/((?!_next|clerk|.*\\..*).*)",
     "/(api|trpc)(.*)",
   ],
 };

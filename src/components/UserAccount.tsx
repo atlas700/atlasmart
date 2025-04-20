@@ -11,50 +11,57 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SignOutButton } from "@clerk/nextjs";
 
-const UserAccount = () => {
-  const { user } = {
-    user: { id: "1", name: "John Doe", image: "/profile.jpg" },
+const UserAccount = ({
+  user,
+}: {
+  user: {
+    role: "USER" | "ADMIN" | "SELLER" | undefined;
+    name: string | null | undefined;
+    imageUrl: string | null | undefined;
   };
-
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild data-testid="user-account-trigger">
         <Avatar className="cursor-pointer">
           <AvatarImage
-            src={user?.image || "/no-profile.jpeg"}
+            src={user.imageUrl || "/no-profile.jpeg"}
             alt="user-profile"
           />
         </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-[250px]" align="end">
-        <DropdownMenuLabel>{user?.name}&apos;s Account</DropdownMenuLabel>
+        <DropdownMenuLabel>{user.name}&apos;s Account</DropdownMenuLabel>
 
         <DropdownMenuSeparator />
 
-        {/* {role === "ADMIN" && (
+        {user.role === "ADMIN" && (
           <DropdownMenuItem asChild data-testid="go-to-dashboard">
             <Link href={"/admin"}>Go to admin dashboard</Link>
           </DropdownMenuItem>
         )}
 
-        {role !== "ADMIN" && (
+        {user.role !== "ADMIN" && (
           <DropdownMenuItem
             asChild
-            data-testid={role === "USER" ? "become-a-seller" : "go-to-store"}
+            data-testid={
+              user.role === "USER" ? "become-a-seller" : "go-to-store"
+            }
           >
             <Link href={"/store"}>
-              {role === "USER" ? "Become a seller" : "Go to store"}
+              {user.role === "USER" ? "Become a seller" : "Go to store"}
             </Link>
           </DropdownMenuItem>
         )}
 
-        {role === "USER" && (
+        {user.role === "USER" && (
           <DropdownMenuItem asChild>
             <Link href={"/orders"}>My Orders</Link>
           </DropdownMenuItem>
-        )} */}
+        )}
 
         <DropdownMenuItem asChild>
           <Link href={"/settings"}>Settings</Link>
@@ -63,7 +70,7 @@ const UserAccount = () => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem>
-          <button>Sign Out</button>
+          <SignOutButton />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
