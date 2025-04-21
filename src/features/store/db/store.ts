@@ -1,26 +1,30 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { StoreTable } from "@/drizzle/schema";
+import { StoreTable, StoreVerificationTokenTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
   try {
-    // const store = await prismadb.store.findFirst({
-    //   where: {
-    //     userId,
-    //     emailVerified: {
-    //       not: null,
-    //     },
-    //   },
-    // });
-
     const store = await db.query.StoreTable.findFirst({
       where: eq(StoreTable.userId, userId),
     });
 
     return store;
   } catch (err) {
+    return null;
+  }
+};
+
+export const getStoreVerificationTokenByEmail = async (email: string) => {
+  try {
+    const verificationToken =
+      await db.query.StoreVerificationTokenTable.findFirst({
+        where: eq(StoreVerificationTokenTable.email, email),
+      });
+
+    return verificationToken;
+  } catch {
     return null;
   }
 };

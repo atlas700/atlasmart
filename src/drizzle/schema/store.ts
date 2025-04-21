@@ -1,9 +1,11 @@
 import { relations } from "drizzle-orm";
 import {
+  date,
   index,
   pgEnum,
   pgTable,
   text,
+  timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -34,6 +36,7 @@ export const StoreTable = pgTable(
     name: text().notNull(),
     description: text(),
     email: text().notNull(),
+    emailVerified: timestamp({ withTimezone: true }),
     country: text().notNull(),
     postCode: text().notNull(),
     logo: text(),
