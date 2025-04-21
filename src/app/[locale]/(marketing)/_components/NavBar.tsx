@@ -9,6 +9,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Locale } from "../../../../../i18n";
 import SearchBar from "./SearchBar";
+import { UserButton } from "@clerk/nextjs";
+import { userRoles } from "@/drizzle/schema";
 
 export default async function NavBar({ locale }: { locale: Locale }) {
   const translation = await getTranslation(locale);
@@ -31,14 +33,12 @@ export default async function NavBar({ locale }: { locale: Locale }) {
           <Suspense>
             {user?.id ? (
               <div className="flex items-center gap-2 sm:gap-4">
-                <UserAccount
-                  user={{
-                    role: user.role,
-                    name: user.name,
-                    imageUrl: user.imageUrl,
-                  }}
-                />
-
+                {user.role === userRoles[1] && (
+                  <Button asChild size={"sm"}>
+                    <Link href={"/admin"}>Admin Dashboard</Link>
+                  </Button>
+                )}
+                <UserButton />
                 {/* <Cart /> */}
               </div>
             ) : (

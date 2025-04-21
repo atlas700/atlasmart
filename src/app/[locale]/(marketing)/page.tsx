@@ -2,15 +2,15 @@ import Container from "@/components/Container";
 import Heading from "@/components/Heading";
 import { Button } from "@/components/ui/button";
 import { userRoles } from "@/drizzle/schema";
+import { getHomePageProducts } from "@/features/products/db/products";
 import { getTranslation } from "@/lib/i18n/getTranslation";
 import { getCurrentUser } from "@/services/clerk";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Locale } from "../../../../i18n";
-import SearchBar from "./_components/SearchBar";
-import { getHomePageProducts } from "@/features/products/db/products";
 import Feed from "./_components/Feed";
+import SearchBar from "./_components/SearchBar";
 
 type Props = {
   params: Promise<{
@@ -24,8 +24,6 @@ export default async function Home({ params }: Props) {
 
   const { user } = await getUser();
   const products = await getHomePageProducts();
-
-  console.log(products);
 
   return (
     <Suspense>
@@ -74,7 +72,7 @@ export default async function Home({ params }: Props) {
 
                 {!user && (
                   <div className="flex items-center gap-3">
-                    <Link href="/auth/sign-in">
+                    <Link href="/sign-in">
                       <Button
                         variant="default"
                         aria-label="Click to go to sign in"
@@ -83,7 +81,7 @@ export default async function Home({ params }: Props) {
                       </Button>
                     </Link>
 
-                    <Link href="/auth/sign-up">
+                    <Link href="/sign-up">
                       <Button
                         variant="outline"
                         aria-label="Click to go to register"

@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         destination: "/api/webhooks/clerk/route",
         locale: false,
       },
+      {
+        source: "/api/products",
+        destination: "/api/products/route",
+        locale: false,
+      },
     ];
   },
 };
