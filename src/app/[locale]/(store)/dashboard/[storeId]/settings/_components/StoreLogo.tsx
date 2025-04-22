@@ -33,9 +33,10 @@ const StoreLogo = ({ value, disabled, storeId, testId, onChange }: Props) => {
     <div
       data-cy={`${testId}-parent`}
       data-testid={`${testId}-parent`}
-      className="w-full max-w-sm p-4 text-center rounded-md cursor-pointer border-2 border-dotted border-gray-200"
+      className="w-full max-w-sm p-4 text-center rounded-md cursor-pointer border-2 border-dotted border-gray-200 bg-primary"
     >
       <UploadButton
+        disabled={disabled}
         endpoint="imageUploader"
         onClientUploadComplete={(res) => {
           if (!res) return;
@@ -50,9 +51,6 @@ const StoreLogo = ({ value, disabled, storeId, testId, onChange }: Props) => {
 
           return;
         }}
-        onUploadProgress={() => {
-          disabled = true;
-        }}
       />
 
       {base64 && typeof base64 === "string" && (
@@ -66,7 +64,7 @@ const StoreLogo = ({ value, disabled, storeId, testId, onChange }: Props) => {
           />
 
           <Trash2
-            className="absolute -top-1 -right-0 cursor-ponter text-red-500"
+            className="absolute -top-1 -right-1 cursor-pointer text-red-500"
             onClick={clearImage}
           />
         </div>
