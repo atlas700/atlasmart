@@ -20,6 +20,8 @@ import { redis } from "@/lib/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 import { and, eq } from "drizzle-orm";
 
+// TODO: ADDING THE SELLER DASHBOARD PAGE
+
 const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "5 m"),
@@ -117,9 +119,8 @@ export const createStore = async (values: StoreValidator) => {
   } else {
     if (code && storeExists?.email) {
       //Check it two factor token exists
-      const storeVerificationToken = await getStoreVerificationTokenByEmail(
-        email
-      );
+      const storeVerificationToken =
+        await getStoreVerificationTokenByEmail(email);
 
       if (!storeVerificationToken) {
         return { error: "Invalid code!" };

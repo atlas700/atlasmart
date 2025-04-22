@@ -22,7 +22,7 @@ const MobileRoutes = ({ routes }: Props) => {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger onClick={() => setOpen(true)}>
+      <SheetTrigger onClick={() => setOpen(true)} asChild>
         <Button className="md:hidden" variant="ghost" size="icon">
           <Menu />
         </Button>

@@ -5,8 +5,6 @@ import { headers } from "next/headers";
 import { Webhook } from "svix";
 
 export async function POST(req: Request) {
-  console.log("Received webhook from Clerk");
-
   const headerPayload = await headers();
   const svixId = headerPayload.get("svix-id");
   const svixTimestamp = headerPayload.get("svix-timestamp");

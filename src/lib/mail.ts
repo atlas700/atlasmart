@@ -45,7 +45,7 @@ export const sendVerificationEmail = async ({
       from,
       to: email,
       subject: "Confirm your email",
-      html: VerificationEmailHtml({
+      html: await await VerificationEmailHtml({
         href: confirmLink,
         buttonText: "Verify Email",
       }),
@@ -67,7 +67,7 @@ export const sendTwoFactorTokenEmail = async ({
       from,
       to: email,
       subject: "2FA Code",
-      html: TwoFAEmailHtml({
+      html: await TwoFAEmailHtml({
         code: token,
       }),
     });
@@ -90,7 +90,7 @@ export const sendPasswordResetEmail = async ({
       from,
       to: email,
       subject: "Reset your password",
-      html: PasswordResetEmailHtml({
+      html: await PasswordResetEmailHtml({
         href: resetLink,
         buttonText: "Reset Password",
       }),
@@ -112,7 +112,7 @@ export const sendStoreVerificationTokenEmail = async ({
       from,
       to: email,
       subject: "Store Verification Code",
-      html: StoreVerificationEmailHtml({
+      html: await StoreVerificationEmailHtml({
         code: token,
       }),
     });
@@ -137,7 +137,7 @@ export const sendConfirmationOrderEmail = async ({
       from,
       to: email,
       subject: "Your Order Confirmation",
-      html: ConfirmationOrderEmailHtml({
+      html: await ConfirmationOrderEmailHtml({
         username,
         address,
         totalAmount,
@@ -166,7 +166,7 @@ export const sendStoreConfirmationEmail = async ({
       from,
       to: email,
       subject: "New Order Alert",
-      html: StoreConfirmationEmailHtml({
+      html: await StoreConfirmationEmailHtml({
         storeName,
         customerName,
         orderDate,
@@ -196,7 +196,7 @@ export const sendCancelOrderEmail = async ({
       from,
       to: email,
       subject: `Confirmation of Your Order Cancellation - [#${orderId}]`,
-      html: CancelOrderEmailHtml({
+      html: await CancelOrderEmailHtml({
         username,
         orderId,
         orderDate,
@@ -226,7 +226,7 @@ export const sendStoreCancelOrderEmail = async ({
       from,
       to: email,
       subject: `Notice of Order Cancellation - Order [#${orderId}]`,
-      html: StoreCancelOrderEmailHtml({
+      html: await StoreCancelOrderEmailHtml({
         storeName,
         orderId,
         orderDate,
@@ -260,7 +260,7 @@ export const sendOrderStatusUpdateEmail = async ({
       from,
       to: email,
       subject: `Your Order  - Order [#${orderId}] is ${orderStatus}!`,
-      html: OrderUpdateEmailHtml({
+      html: await OrderUpdateEmailHtml({
         username,
         orderId,
         orderDate,
@@ -292,7 +292,7 @@ export const sendReturnRequestEmail = async ({
       from,
       to: email,
       subject: `Your Return Request for Order - [#${orderId}] - Received`,
-      html: ReturnRequestEmailHtml({
+      html: await ReturnRequestEmailHtml({
         username,
         orderId,
         orderDate,
@@ -322,7 +322,7 @@ export const sendReturnOrderEmail = async ({
       from,
       to: email,
       subject: `Confirmation of Your Order return - [#${orderId}]`,
-      html: ReturnOrderEmailHtml({
+      html: await ReturnOrderEmailHtml({
         username,
         orderId,
         orderDate,
@@ -354,7 +354,7 @@ export const sendStoreReturnOrderEmail = async ({
       from,
       to: email,
       subject: `Notification of Item Return - Order [#${orderId}]`,
-      html: StoreReturnOrderEmailHtml({
+      html: await StoreReturnOrderEmailHtml({
         storeName,
         orderId,
         orderDate,
@@ -385,7 +385,7 @@ export const sendCreatedStoreEmail = async ({
       from,
       to: email,
       subject: "Store Creation Confirmation",
-      html: CreateStoreEmailHtml({
+      html: await CreateStoreEmailHtml({
         storeName,
         description,
         storeEmail,
@@ -415,7 +415,7 @@ export const sendCreatedProductEmail = async ({
       from,
       to: email,
       subject: "Product Creation Confirmation",
-      html: CreateProductEmailHtml({
+      html: await CreateProductEmailHtml({
         storeName,
         username,
         productName,
@@ -445,7 +445,7 @@ export const sendUpdatedProductEmail = async ({
       from,
       to: email,
       subject: "Product Update Confirmation",
-      html: UpdateProductEmailHtml({
+      html: await UpdateProductEmailHtml({
         storeName,
         username,
         productName,
@@ -473,7 +473,7 @@ export const sendDeletedProductEmail = async ({
       from,
       to: email,
       subject: "Product Deletion Notification",
-      html: DeletedProductEmailHtml({
+      html: await DeletedProductEmailHtml({
         storeName,
         username,
         productName,

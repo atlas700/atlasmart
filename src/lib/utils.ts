@@ -1,3 +1,4 @@
+import { StoreStatus } from "@/drizzle/schema";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -245,7 +246,7 @@ export const getOrderStatusValue = (status: string) => {
   return statusValue;
 };
 
-export const getStatusColor = (status: storeStatus) => {
+export const getStatusColor = (status: StoreStatus) => {
   let color;
 
   switch (status) {

@@ -1,5 +1,5 @@
 {
-  "id": "fb70f5d9-7690-4823-910d-00068241b7db",
+  "id": "3ba17258-e4af-43be-b932-ccc7ed9231d9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -15,8 +15,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "numInStock": {
-          "name": "numInStock",
+        "numInStocks": {
+          "name": "numInStocks",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -1738,6 +1738,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "emailVerified": {
+          "name": "emailVerified",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "country": {
           "name": "country",

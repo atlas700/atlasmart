@@ -2,7 +2,7 @@
 
 import { db } from "@/drizzle/db";
 import { StoreTable, StoreVerificationTokenTable } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
   try {
@@ -29,22 +29,20 @@ export const getStoreVerificationTokenByEmail = async (email: string) => {
   }
 };
 
-// export const getStoresByUserId = async ({ userId }: { userId: string }) => {
-//   try {
-//     const stores = await prismadb.store.findMany({
-//       where: {
-//         userId,
-//         emailVerified: {
-//           not: null,
-//         },
-//       },
-//     });
+export const getStoresByUserId = async ({ userId }: { userId: string }) => {
+  try {
+    const stores = await db.query.StoreTable.findMany({
+      where: and(
+        eq(StoreTable.userId, userId),
+        isNotNull(StoreTable.emailVerified)
+      ),
+    });
 
-//     return stores;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return stores;
+  } catch (err) {
+    return [];
+  }
+};
 
 // export const getStoreById = async ({
 //   userId,
@@ -228,30 +226,27 @@ export const getStoreVerificationTokenByEmail = async (email: string) => {
 //   }
 // };
 
-// export const getStoreDetails = async ({
-//   userId,
-//   storeId,
-// }: {
-//   userId: string;
-//   storeId: string;
-// }) => {
-//   try {
-//     if (!storeId || !userId) {
-//       return null;
-//     }
+export const getStoreDetails = async ({
+  userId,
+  storeId,
+}: {
+  userId: string;
+  storeId: string;
+}) => {
+  try {
+    if (!storeId || !userId) {
+      return null;
+    }
 
-//     const store = await prismadb.store.findUnique({
-//       where: {
-//         id: storeId,
-//         userId,
-//       },
-//     });
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, userId)),
+    });
 
-//     return store;
-//   } catch (err) {
-//     return null;
-//   }
-// };
+    return store;
+  } catch (err) {
+    return null;
+  }
+};
 
 // export const getProductsByStoreId = async ({
 //   userId,

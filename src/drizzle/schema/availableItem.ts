@@ -12,8 +12,8 @@ export const AvailableItemTable = pgTable(
   {
     id,
     numInStocks: integer().notNull(),
-    currentPrice: decimal().notNull(),
-    originalPrice: decimal().notNull(),
+    currentPrice: decimal({ mode: "number" }).notNull(),
+    originalPrice: decimal({ mode: "number" }).notNull(),
 
     sizeId: uuid()
       .notNull()

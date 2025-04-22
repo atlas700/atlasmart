@@ -5,7 +5,7 @@ CREATE TYPE "public"."store_status" AS ENUM('PENDING', 'REVIEWING', 'APPROVED', 
 CREATE TYPE "public"."user_role" AS ENUM('USER', 'ADMIN', 'SELLER');--> statement-breakpoint
 CREATE TABLE "available_item" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"numInStock" integer NOT NULL,
+	"numInStocks" integer NOT NULL,
 	"currentPrice" numeric NOT NULL,
 	"originalPrice" numeric NOT NULL,
 	"sizeId" uuid NOT NULL,
@@ -154,6 +154,7 @@ CREATE TABLE "stores" (
 	"name" text NOT NULL,
 	"description" text,
 	"email" text NOT NULL,
+	"emailVerified" timestamp with time zone,
 	"country" text NOT NULL,
 	"postCode" text NOT NULL,
 	"logo" text,
