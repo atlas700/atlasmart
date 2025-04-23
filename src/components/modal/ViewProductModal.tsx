@@ -6,12 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 import BtnSpinner from "../BtnSpinner";
 import ImageSlider from "../ImageSlider";
-import { ProductItemType } from "@/types";
 import { useParams } from "next/navigation";
 import { cn, formatPrice } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Product, Size, Color, ProductStatus } from ".prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  ColorTable,
+  ProductItemTable,
+  productStatuses,
+  ProductTable,
+  SizeTable,
+} from "@/drizzle/schema";
 
 type Props = {
   isOpen: boolean;
@@ -26,8 +31,8 @@ type Props = {
   productId: string;
 };
 
-type ProductType = Product & {
-  productItems: ProductItemType[];
+type ProductType = typeof ProductTable.$inferSelect & {
+  productItems: (typeof ProductItemTable.$inferSelect)[];
 };
 
 const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
@@ -39,7 +44,9 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
 
   const [priceIndex, setPriceIndex] = useState(0);
 
-  const [activeSize, setActiveSize] = useState<Size | null>(null);
+  const [activeSize, setActiveSize] = useState<
+    typeof SizeTable.$inferSelect | null
+  >(null);
 
   const {
     data: product,
@@ -65,18 +72,19 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
   } = useQuery({
     queryKey: ["product-modal-colors", currentProductItem?.id],
     queryFn: async () => {
-      if (currentProductItem?.colorIds.length === 0) return;
+      if (currentProductItem?.colorId.length === 0) return;
 
       const res = await axios.post(
         `/api/stores/${params.storeId}/colors/some`,
-        { colorIds: currentProductItem?.colorIds }
+        { colorIds: currentProductItem?.colorId }
       );
 
-      return res.data as Color[];
+      return res.data as (typeof ColorTable.$inferSelect)[];
     },
   });
 
   const currentSizes =
+    // @ts-ignore
     currentProductItem?.availableItems?.map((item) => item.size) || [];
 
   useEffect(() => {
@@ -90,7 +98,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {product?.status === ProductStatus.APPROVED ? "View" : "Preview"}{" "}
+            {product?.status === productStatuses[2] ? "View" : "Preview"}{" "}
             Product
           </DialogTitle>
 
@@ -140,6 +148,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
                   <div className="flex items-center gap-2 font-semibold">
                     <span>
                       {formatPrice(
+                        // @ts-ignore
                         currentProductItem?.availableItems?.[priceIndex]
                           ?.currentPrice || 0,
                         {
@@ -150,6 +159,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
 
                     <span className="line-through text-gray-500">
                       {formatPrice(
+                        // @ts-ignore
                         currentProductItem?.availableItems?.[priceIndex]
                           ?.originalPrice || 0,
                         {
@@ -173,6 +183,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
                 ) : (
                   <div className="font-semibold">
                     {formatPrice(
+                      // @ts-ignore
                       currentProductItem?.availableItems?.[priceIndex]
                         ?.currentPrice || 0,
                       {
@@ -188,7 +199,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
                   <h1 className="text-lg font-bold">Sizes:</h1>
 
                   <div className="flex flex-wrap gap-3">
-                    {currentSizes?.map((size, i) => (
+                    {currentSizes?.map((size: any, i: any) => (
                       <div
                         key={size?.id}
                         className={cn(
@@ -253,7 +264,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
                 </div>
               </div>
 
-              {product.status === ProductStatus.APPROVED && (
+              {product.status === productStatuses[2] && (
                 <div className="text-violet-500 font-semibold">
                   <Link className="underline" href={`/products/${productId}`}>
                     User&apos;s View

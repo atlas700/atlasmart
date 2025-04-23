@@ -15,7 +15,7 @@ export const ProductItemTable = pgTable("product_item", {
   productId: uuid()
     .notNull()
     .references(() => ProductTable.id, { onDelete: "cascade" }),
-  colorId: uuid()
+  colorIds: uuid()
     .notNull()
     .references(() => ColorTable.id, { onDelete: "cascade" }),
 
@@ -31,7 +31,7 @@ export const ProductItemRelationships = relations(
       references: [ProductTable.id],
     }),
     color: one(ColorTable, {
-      fields: [ProductItemTable.colorId],
+      fields: [ProductItemTable.colorIds],
       references: [ColorTable.id],
     }),
     orderItems: many(OrderItemTable),

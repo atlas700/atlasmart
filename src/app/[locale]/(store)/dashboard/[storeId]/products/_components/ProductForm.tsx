@@ -1,34 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
-import AddBtn from "./AddBtn";
-import { toast } from "sonner";
-import { Plus } from "lucide-react";
-import axios, { AxiosError } from "axios";
-import AvailableForm from "./AvailableForm";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import BtnSpinner from "@/components/BtnSpinner";
-import { checkImage } from "@/actions/checkImage";
 import ImageUpload from "@/components/ImageUpload";
-import MultiSelect from "@/components/MultiSelect";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams, useRouter } from "next/navigation";
-import ColorModal from "@/components/modal/ColorModal";
 import AlertModal from "@/components/modal/AlertModal";
 import CategoryModal from "@/components/modal/CategoryModal";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { ProductValidator, ProductSchema } from "@/lib/validators/product";
+import ColorModal from "@/components/modal/ColorModal";
+import MultiSelect from "@/components/MultiSelect";
+import { Button } from "@/components/ui/button";
 import {
-  Available,
-  Category,
-  Color,
-  Product,
-  ProductItem,
-  Size,
-} from "@prisma/client";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -36,26 +23,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ProductSchema, ProductValidator } from "@/lib/validators/product";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import { Plus } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import AddBtn from "./AddBtn";
+import AvailableForm from "./AvailableForm";
 import {
-  Form,
-  FormControl,
-  FormLabel,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+  AvailableItemTable,
+  ColorTable,
+  ProductItemTable,
+  ProductTable,
+  SizeTable,
+} from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
 
-type ProductItemType = ProductItem & {
-  availableItems: Available[];
+type ProductItemType = typeof ProductItemTable.$inferSelect & {
+  availableItems: (typeof AvailableItemTable.$inferSelect)[];
 };
 
 type Props = {
-  data?: Product & {
+  data?: typeof ProductTable.$inferSelect & {
     productItems: ProductItemType[];
   };
+  currentUser: Awaited<ReturnType<typeof getCurrentUser> | null>;
 };
 
-const ProductForm = ({ data }: Props) => {
+const ProductForm = ({ data, currentUser }: Props) => {
   const params = useParams();
 
   const router = useRouter();
@@ -84,6 +84,7 @@ const ProductForm = ({ data }: Props) => {
       name: data?.name || "",
       categoryId: data?.categoryId || "",
       description: data?.description || "",
+      // @ts-ignore
       productItems: formattedProductItems || [],
     },
   });
@@ -111,7 +112,7 @@ const ProductForm = ({ data }: Props) => {
     queryFn: async () => {
       const res = await axios.get(`/api/stores/${params.storeId}/sizes`);
 
-      return res.data as Size[];
+      return res.data as (typeof SizeTable.$inferSelect)[];
     },
   });
 
@@ -124,7 +125,7 @@ const ProductForm = ({ data }: Props) => {
     queryFn: async () => {
       const res = await axios.get(`/api/stores/${params.storeId}/colors`);
 
-      return res.data as Color[];
+      return res.data as (typeof ColorTable.$inferSelect)[];
     },
   });
 
@@ -171,30 +172,6 @@ const ProductForm = ({ data }: Props) => {
       }
     },
   });
-
-  const checkProductImages = async (values: ProductValidator) => {
-    if (process.env.VERCEL_ENV !== "production") {
-      return false;
-    }
-
-    let hasInappropriateImages = false;
-
-    await Promise.all(
-      values.productItems.map(async (item) => {
-        await Promise.all(
-          item.images.map(async (imageUrl) => {
-            const imgIsAppropiate = await checkImage({ imageUrl });
-
-            if (!imgIsAppropiate.isAppropiate || imgIsAppropiate.error) {
-              hasInappropriateImages = true;
-            }
-          })
-        );
-      })
-    );
-
-    return hasInappropriateImages;
-  };
 
   const { mutate: createProduct, isPending: creating } = useMutation({
     mutationKey: ["create-product"],
@@ -244,14 +221,6 @@ const ProductForm = ({ data }: Props) => {
   const onSubmit = async (values: ProductValidator) => {
     if (honeyPot) return;
 
-    const imagesAreInappropiate = await checkProductImages(values);
-
-    if (imagesAreInappropiate) {
-      toast.error("The images of your product is inappropiate! Change it.");
-
-      return;
-    }
-
     if (data) {
       updateProduct(values);
     } else {
@@ -271,6 +240,7 @@ const ProductForm = ({ data }: Props) => {
 
       <div data-testid="product-form" data-cy="product-form">
         <Form {...form}>
+          {/* @ts-ignore */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               <div className="hidden">
@@ -446,6 +416,7 @@ const ProductForm = ({ data }: Props) => {
                             disabled={creating || updating || deletingItem}
                             storeId={params.storeId as string}
                             testId={`product-item-form-${index}-upload`}
+                            currentUser={currentUser}
                           />
                         </FormControl>
 

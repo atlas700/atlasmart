@@ -29,56 +29,6 @@ export const readAllFiles = async (files: any) => {
   return results;
 };
 
-// export const uploadProductImages = async ({
-//   selectedFiles,
-//   userId,
-//   storeId,
-// }: {
-//   selectedFiles: any[];
-//   userId: string | undefined;
-//   storeId: string | undefined;
-// }) => {
-//   if (selectedFiles.length < 1 || !userId) return;
-
-//   const uploadPromises = selectedFiles.map(async (file) => {
-//     const storagePath = `products/${userId}/${storeId}/${uuidv4()}-${
-//       file.name
-//     }`;
-
-//     const imageRef = ref(storage, storagePath);
-
-//     await uploadString(imageRef, file.base64, "data_url");
-
-//     return getDownloadURL(imageRef);
-//   });
-
-//   const imageUrls = await Promise.all(uploadPromises);
-
-//   return imageUrls;
-// };
-
-export const uploadToStorage = async ({
-  file,
-  userId,
-  pathname,
-}: {
-  file: string;
-  userId: string | undefined;
-  pathname?: string;
-}) => {
-  if (!userId) return;
-
-  const storagePath = pathname ? pathname : `profile/${userId}/image`;
-
-  const imageRef = ref(storage, storagePath);
-
-  await uploadString(imageRef, file, "data_url");
-
-  const downloadUrl = await getDownloadURL(imageRef);
-
-  return downloadUrl;
-};
-
 export const generateTrackingId = (length = 10) => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

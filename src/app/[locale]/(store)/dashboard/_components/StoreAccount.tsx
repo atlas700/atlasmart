@@ -58,7 +58,7 @@ const StoreAccount = ({ currentStore, user }: Props) => {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild className="w-full">
           <SignOutButton>Sign Out</SignOutButton>
         </DropdownMenuItem>
       </DropdownMenuContent>

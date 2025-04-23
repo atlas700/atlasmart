@@ -1,8 +1,14 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { StoreTable, StoreVerificationTokenTable } from "@/drizzle/schema";
-import { and, eq, isNotNull } from "drizzle-orm";
+import {
+  CategoryTable,
+  ProductItemTable,
+  ProductTable,
+  StoreTable,
+  StoreVerificationTokenTable,
+} from "@/drizzle/schema";
+import { and, countDistinct, desc, eq, isNotNull } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
   try {
@@ -196,35 +202,32 @@ export const getStoresByUserId = async ({ userId }: { userId: string }) => {
 //   }
 // };
 
-// export const getStore = async ({
-//   userId,
-//   storeId,
-// }: {
-//   userId: string;
-//   storeId: string;
-// }) => {
-//   try {
-//     if (!storeId || !userId) {
-//       return null;
-//     }
+export const getStore = async ({
+  userId,
+  storeId,
+}: {
+  userId: string;
+  storeId: string;
+}) => {
+  try {
+    if (!storeId || !userId) {
+      return null;
+    }
 
-//     const store = await prismadb.store.findUnique({
-//       where: {
-//         id: storeId,
-//         userId,
-//       },
-//       select: {
-//         id: true,
-//         status: true,
-//         statusFeedback: true,
-//       },
-//     });
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, userId)),
+      columns: {
+        id: true,
+        status: true,
+        statusFeedback: true,
+      },
+    });
 
-//     return store;
-//   } catch (err) {
-//     return null;
-//   }
-// };
+    return store;
+  } catch (err) {
+    return null;
+  }
+};
 
 export const getStoreDetails = async ({
   userId,
@@ -248,42 +251,71 @@ export const getStoreDetails = async ({
   }
 };
 
-// export const getProductsByStoreId = async ({
-//   userId,
-//   storeId,
-// }: {
-//   userId: string;
-//   storeId: string;
-// }) => {
-//   try {
-//     if (!storeId || !userId) {
-//       return [];
-//     }
+export const getProductsByStoreId = async ({
+  userId,
+  storeId,
+}: {
+  userId: string;
+  storeId: string;
+}) => {
+  try {
+    if (!storeId || !userId) {
+      return [];
+    }
 
-//     const products = await prismadb.product.findMany({
-//       where: {
-//         userId,
-//         storeId,
-//       },
-//       include: {
-//         category: {
-//           select: {
-//             name: true,
-//           },
-//         },
-//         _count: {
-//           select: {
-//             productItems: true,
-//           },
-//         },
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    const products = await db
+      .select({
+        id: ProductTable.id,
+        userId: ProductTable.userId,
+        storeId: ProductTable.storeId,
+        name: ProductTable.name,
+        categoryId: ProductTable.categoryId,
+        description: ProductTable.description,
+        status: ProductTable.status,
+        statusFeedback: ProductTable.statusFeedback,
+        createdAt: ProductTable.createdAt,
+        updatedAt: ProductTable.updatedAt,
+        category: {
+          name: CategoryTable.name,
+        },
+        _count: {
+          productItems: countDistinct(ProductItemTable.id),
+        },
+      })
+      .from(ProductTable)
+      .where(
+        and(eq(ProductTable.storeId, storeId), eq(ProductTable.userId, userId))
+      )
+      .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
+      .leftJoin(
+        ProductItemTable,
+        eq(ProductTable.id, ProductItemTable.productId)
+      )
+      .orderBy(desc(ProductTable.createdAt));
+    // const products = await prismadb.product.findMany({
+    //   where: {
+    //     userId,
+    //     storeId,
+    //   },
+    //   include: {
+    //     category: {
+    //       select: {
+    //         name: true,
+    //       },
+    //     },
+    //     _count: {
+    //       select: {
+    //         productItems: true,
+    //       },
+    //     },
+    //   },
+    //   orderBy: {
+    //     createdAt: "desc",
+    //   },
+    // });
 
-//     return products;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return products;
+  } catch (err) {
+    return [];
+  }
+};

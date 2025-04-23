@@ -1,23 +1,25 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { currentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
-import { storeStatus } from "@prisma/client";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
 import NotApproved from "./_components/NotApproved";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { buttonVariants } from "@/components/ui/button";
-import { getProductsByStoreId, getStore } from "@/data/store";
+import { getProductsByStoreId, getStore } from "@/features/store/db/store";
+import { getCurrentUser } from "@/services/clerk";
+import { storeStatuses } from "@/drizzle/schema";
 
 export default async function ProductsPage({
-  params: { storeId },
+  params,
 }: {
-  params: { storeId: string };
+  params: Promise<{ storeId: string }>;
 }) {
-  const { user } = await currentUser();
+  const { storeId } = await params;
+
+  const { user } = await getCurrentUser({ allData: true });
 
   if (!user) {
     return redirect("/auth/sign-in");
@@ -29,12 +31,12 @@ export default async function ProductsPage({
     return redirect("/store");
   }
 
-  if (store.status !== storeStatus.APPROVED) {
+  if (store.status !== storeStatuses[2]) {
     return (
       <div className="w-full h-[calc(100vh-110px)] flex items-center justify-center">
         <NotApproved
           status={store.status}
-          statusFeedback={store.statusFeedback}
+          statusFeedback={store.statusFeedback!}
         />
       </div>
     );

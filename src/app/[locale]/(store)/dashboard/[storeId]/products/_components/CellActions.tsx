@@ -3,7 +3,6 @@ import Status from "./Status";
 import { toast } from "sonner";
 import { ProductCol } from "./Columns";
 import axios, { AxiosError } from "axios";
-import { ProductStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import AlertModal from "@/components/modal/AlertModal";
@@ -18,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { productStatuses } from "@/drizzle/schema";
 
 type Props = {
   data: ProductCol;
@@ -107,12 +107,10 @@ const CellActions = ({ data, index }: Props) => {
             disabled={isPending}
           >
             <Eye className="w-4 h-4 mr-2" />
-            {data.status === ProductStatus.APPROVED
-              ? "View Product"
-              : "Preview"}
+            {data.status === productStatuses[2] ? "View Product" : "Preview"}
           </DropdownMenuItem>
 
-          {data.status === ProductStatus.APPROVED && (
+          {data.status === productStatuses[2] && (
             <DropdownMenuItem
               onClick={() =>
                 router.push(
