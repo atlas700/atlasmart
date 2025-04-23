@@ -71,7 +71,7 @@ const ColorModal = ({ children }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen} data-testid="color-form">
-      <DialogTrigger>{children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent>
         <DialogHeader>

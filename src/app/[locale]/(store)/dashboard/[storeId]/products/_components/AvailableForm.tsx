@@ -7,7 +7,6 @@ import axios, { AxiosError } from "axios";
 import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Available, Size } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import SizeModal from "@/components/modal/SizeModal";
 import { ProductValidator } from "@/lib/validators/product";
@@ -25,13 +24,14 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { AvailableItemTable, SizeTable } from "@/drizzle/schema";
 
 type Props = {
   form: UseFormReturn<ProductValidator>;
   index: number;
-  sizes: Size[];
+  sizes: (typeof SizeTable.$inferSelect)[];
   disabled: boolean;
-  availableItems: Available[];
+  availableItems: (typeof AvailableItemTable.$inferSelect)[];
   productId: string | undefined;
   testId?: string;
 };
@@ -129,15 +129,20 @@ const AvailableForm = ({
                         </FormControl>
 
                         <SelectContent>
-                          {sizes.map((size: Size, idx: number) => (
-                            <SelectItem
-                              key={size.id}
-                              value={size.id}
-                              data-cy={`${testId}-select-size-${idx}`}
-                            >
-                              {size.name}
-                            </SelectItem>
-                          ))}
+                          {sizes.map(
+                            (
+                              size: typeof SizeTable.$inferSelect,
+                              idx: number
+                            ) => (
+                              <SelectItem
+                                key={size.id}
+                                value={size.id}
+                                data-cy={`${testId}-select-size-${idx}`}
+                              >
+                                {size.name}
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                     </FormControl>

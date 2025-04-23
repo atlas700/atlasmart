@@ -1,42 +1,39 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { db } from "@/drizzle/db";
+import { SizeTable, StoreTable, userRoles } from "@/drizzle/schema";
 import { SizeSchema } from "@/lib/validators/size";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -46,38 +43,32 @@ export async function POST(
     try {
       validatedBody = SizeSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { name, value } = validatedBody;
 
     //Check if category name exists
-    const size = await prismadb.size.findFirst({
-      where: {
-        storeId,
-        name: {
-          equals: name,
-          mode: "insensitive",
-        },
-      },
+    const size = await db.query.SizeTable.findFirst({
+      where: and(eq(SizeTable.storeId, storeId), eq(SizeTable.name, name)),
     });
 
     if (size) {
-      return new NextResponse("Name already taken!", { status: 409 });
+      return new Response("Name already taken!", { status: 409 });
     }
 
-    await prismadb.size.create({
-      data: {
-        name,
-        value,
-        storeId,
-      },
+    await db.insert(SizeTable).values({
+      name,
+      value,
+      storeId,
     });
 
-    return NextResponse.json({ message: "Size Created!" });
+    return new Response(JSON.stringify({ message: "Size Created!" }));
   } catch (err) {
     console.log("[SIZE_CREATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response(JSON.stringify("Internal Error"), { status: 500 });
   }
 }

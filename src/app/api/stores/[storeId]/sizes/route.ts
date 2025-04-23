@@ -1,8 +1,7 @@
 import { db } from "@/drizzle/db";
 import { SizeTable, StoreTable, userRoles } from "@/drizzle/schema";
 import { getCurrentUser } from "@/services/clerk";
-import { and, desc, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,
@@ -12,19 +11,19 @@ export async function GET(
     const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if there is a current user
     const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
     if (user.role !== userRoles[2]) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
@@ -33,17 +32,17 @@ export async function GET(
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const sizes = await db.query.SizeTable.findMany({
-      where: eq(StoreTable.id, storeId),
+      where: eq(SizeTable.storeId, storeId),
     });
 
     return new Response(JSON.stringify(sizes));
   } catch (err) {
     console.log("[SIZE_GET]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

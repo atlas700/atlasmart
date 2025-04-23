@@ -37,6 +37,7 @@ import AddBtn from "./AddBtn";
 import AvailableForm from "./AvailableForm";
 import {
   AvailableItemTable,
+  CategoryTable,
   ColorTable,
   ProductItemTable,
   ProductTable,
@@ -84,7 +85,6 @@ const ProductForm = ({ data, currentUser }: Props) => {
       name: data?.name || "",
       categoryId: data?.categoryId || "",
       description: data?.description || "",
-      // @ts-ignore
       productItems: formattedProductItems || [],
     },
   });
@@ -219,7 +219,10 @@ const ProductForm = ({ data, currentUser }: Props) => {
   });
 
   const onSubmit = async (values: ProductValidator) => {
+    console.log("BEFORE HONEY POT", values);
+
     if (honeyPot) return;
+    console.log("AFTER HONEY POT", values);
 
     if (data) {
       updateProduct(values);
@@ -240,7 +243,6 @@ const ProductForm = ({ data, currentUser }: Props) => {
 
       <div data-testid="product-form" data-cy="product-form">
         <Form {...form}>
-          {/* @ts-ignore */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               <div className="hidden">
@@ -316,15 +318,20 @@ const ProductForm = ({ data, currentUser }: Props) => {
 
                             {!isLoading && !error && categories && (
                               <>
-                                {categories?.map((cat: Category, i: number) => (
-                                  <SelectItem
-                                    key={cat.id}
-                                    value={cat.id}
-                                    data-cy={`product-category-select-${i}`}
-                                  >
-                                    {cat.name}
-                                  </SelectItem>
-                                ))}
+                                {categories?.map(
+                                  (
+                                    cat: typeof CategoryTable.$inferSelect,
+                                    i: number
+                                  ) => (
+                                    <SelectItem
+                                      key={cat.id}
+                                      value={cat.id}
+                                      data-cy={`product-category-select-${i}`}
+                                    >
+                                      {cat.name}
+                                    </SelectItem>
+                                  )
+                                )}
                               </>
                             )}
                           </SelectContent>

@@ -1,43 +1,39 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { db } from "@/drizzle/db";
+import { ColorTable, StoreTable, userRoles } from "@/drizzle/schema";
 import { ColorSchema } from "@/lib/validators/color";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
-import { checkText } from "@/actions/checkText";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -47,56 +43,32 @@ export async function POST(
     try {
       validatedBody = ColorSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { name, value } = validatedBody;
 
-    if (process.env.VERCEL_ENV === "production") {
-      //Check if name is appropiate
-      const nameIsAppropiate = await checkText({ text: name });
-
-      if (
-        nameIsAppropiate.success === "NEGATIVE" ||
-        nameIsAppropiate.success === "MIXED" ||
-        nameIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The name of your category is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
     //Check if category name exists
-    const color = await prismadb.color.findFirst({
-      where: {
-        storeId,
-        name: {
-          equals: name,
-          mode: "insensitive",
-        },
-      },
+    const color = await db.query.ColorTable.findFirst({
+      where: and(eq(ColorTable.storeId, storeId), eq(ColorTable.name, name)),
     });
 
     if (color) {
-      return new NextResponse(`${name} already taken!`, { status: 409 });
+      return new Response(`${name} already taken!`, { status: 409 });
     }
 
-    await prismadb.color.create({
-      data: {
-        name,
-        value,
-        storeId,
-      },
+    await db.insert(ColorTable).values({
+      name,
+      value,
+      storeId,
     });
 
-    return NextResponse.json({ message: "Color Created!" });
+    return new Response(JSON.stringify({ message: "Color Created!" }));
   } catch (err) {
     console.log("[COLOR_CREATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

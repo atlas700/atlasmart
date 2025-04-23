@@ -1,58 +1,65 @@
-import prismadb from "@/lib/prisma";
-import { apiRatelimit } from "@/lib/redis";
-import { NextResponse } from "next/server";
-import { getCurrentPrice } from "@/lib/utils";
-import { checkText } from "@/actions/checkText";
+import { db } from "@/drizzle/db";
+import {
+  AvailableItemTable,
+  CategoryTable,
+  ProductItemTable,
+  ProductTable,
+  storeStatuses,
+  StoreTable,
+  userRoles,
+} from "@/drizzle/schema";
 import { sendCreatedProductEmail } from "@/lib/mail";
-import { UserRole, storeStatus } from "@prisma/client";
-import { currentUser } from "@/lib/auth";
+import { apiRatelimit } from "@/lib/redis";
+import { getCurrentPrice } from "@/lib/utils";
 import { ProductSchema } from "@/lib/validators/product";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user || !user.id) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     const { success } = await apiRatelimit.limit(user.id);
 
     if (!success && process.env.VERCEL_ENV === "production") {
-      return NextResponse.json("Too Many Requests! try again in 1 min", {
-        status: 429,
-      });
+      return new Response(
+        JSON.stringify("Too Many Requests! try again in 1 min"),
+        {
+          status: 429,
+        }
+      );
     }
 
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     //Check if store has been approved
-    if (store.status !== storeStatus.APPROVED) {
-      return new NextResponse("Unauthorized, Store not approved yet!", {
+    if (store.status !== storeStatuses[2]) {
+      return new Response("Unauthorized, Store not approved yet!", {
         status: 401,
       });
     }
@@ -64,77 +71,48 @@ export async function POST(
     try {
       validatedBody = ProductSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { name, categoryId, description, productItems } = validatedBody;
 
     //Check if there is at least one product item
     if (productItems.length < 1) {
-      return new NextResponse("At least one product item is required.", {
+      return new Response("At least one product item is required.", {
         status: 400,
       });
     }
 
-    if (process.env.VERCEL_ENV === "production") {
-      //Check if name and desctiption are appropiate
-      const nameIsAppropiate = await checkText({ text: name });
-
-      if (
-        nameIsAppropiate.success === "NEGATIVE" ||
-        nameIsAppropiate.success === "MIXED" ||
-        nameIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The name of your product is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-
-      const descriptionIsAppropiate = await checkText({ text: description });
-
-      if (
-        descriptionIsAppropiate.success === "NEGATIVE" ||
-        descriptionIsAppropiate.success === "MIXED" ||
-        descriptionIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The description of your product is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
     //Create Product
-    const product = await prismadb.product.create({
-      data: {
+    const [product] = await db
+      .insert(ProductTable)
+      .values({
         userId: user.id,
         storeId,
         name,
         categoryId,
         description,
-      },
-    });
+      })
+      .returning();
 
     //Create product items
     await Promise.all(
       productItems.map(async (item) => {
-        const productItem = await prismadb.productItem.create({
-          data: {
-            productId: product?.id,
+        const [productItem] = await db
+          .insert(ProductItemTable)
+          .values({
+            productId: product.id,
             images: item.images,
             colorIds: item.colorIds || [],
             discount: item.discount,
-          },
-        });
+          })
+          .returning();
 
-        await prismadb.available.createMany({
-          data: item.availableItems.map((item) => ({
-            productId: product?.id,
+        await db.insert(AvailableItemTable).values(
+          item.availableItems.map((item) => ({
+            productId: product.id,
             productItemId: productItem.id,
             sizeId: item.sizeId,
             numInStocks: item.numInStocks,
@@ -143,32 +121,26 @@ export async function POST(
               price: item.price,
               discount: productItem.discount || 0,
             }),
-          })),
-        });
+          }))
+        );
 
-        const updatedProduct = await prismadb.product.update({
-          where: {
-            id: product?.id,
-          },
-          data: {
+        const [updatedProduct] = await db
+          .update(ProductTable)
+          .set({
             status: "APPROVED",
             statusFeedback:
               "Your product has been approved. It will be shown to potential customers.",
-          },
-          select: {
-            name: true,
+          })
+          .where(eq(ProductTable.id, product.id))
+          .returning({
+            name: ProductTable.name,
             store: {
-              select: {
-                name: true,
-              },
+              name: StoreTable.name,
             },
             category: {
-              select: {
-                name: true,
-              },
+              name: CategoryTable.name,
             },
-          },
-        });
+          });
 
         //Send email confirmation
         await sendCreatedProductEmail({
@@ -181,10 +153,10 @@ export async function POST(
       })
     );
 
-    return NextResponse.json({ message: "Product Created!" });
+    return new Response(JSON.stringify({ message: "Product Created!" }));
   } catch (err) {
     console.log("[PRODUCT_CREATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
