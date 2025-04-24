@@ -4,7 +4,7 @@ import {
   ProductItemTable,
   ProductTable,
 } from "@/drizzle/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export async function GET(request: Request) {
@@ -21,50 +21,35 @@ export async function GET(request: Request) {
         page: url.searchParams.get("page"),
       });
 
+    const limitNum = parseInt(limit, 10); // pagination params :contentReference[oaicite:0]{index=0}
+    const offsetNum = (parseInt(page, 10) - 1) * limitNum; // pagination params :contentReference[oaicite:1]{index=1}
+
     const products = await db.query.ProductTable.findMany({
-      where: and(
-        eq(ProductTable.status, "APPROVED"),
-        sql`EXISTS (
-      SELECT 1 FROM ${ProductItemTable} 
-      WHERE ${ProductItemTable.productId} = ${ProductTable.id} 
-      AND EXISTS (
-        SELECT 1 FROM ${AvailableItemTable} 
-        WHERE ${AvailableItemTable.productItemId} = ${ProductItemTable.id} 
-        AND ${AvailableItemTable.numInStocks} > 0
-      )
-    )`
-      ),
+      where: eq(ProductTable.status, "APPROVED"), // filter approved only
+      limit: limitNum,
+      offset: offsetNum,
+      orderBy: desc(ProductTable.createdAt), // sort by createdAt DESC
+
       with: {
-        category: true,
+        category: true, // include 1:1 category
         productItems: {
-          where: sql`EXISTS (
-          SELECT 1 FROM ${AvailableItemTable} 
-          WHERE ${AvailableItemTable.productItemId} = ${ProductItemTable.id} 
-          AND ${AvailableItemTable.numInStocks} > 0
-        )`,
           with: {
             availableItems: {
+              where: gt(AvailableItemTable.numInStocks, 0), // only items in stock
               with: {
-                size: true,
+                size: true, // include size object
               },
             },
           },
         },
         reviews: {
-          columns: {
-            value: true,
-          },
+          columns: { value: true }, // select only review value
         },
       },
-      orderBy: (product) => [desc(product.createdAt)],
-      limit: parseInt(limit),
-      offset: (parseInt(page) - 1) * parseInt(limit),
     });
 
     return new Response(JSON.stringify(products));
   } catch (err) {
-    return new Response(JSON.stringify("Internal server error"), {
-      status: 500,
-    });
+    return new Response("Internal Error", { status: 500 });
   }
 }

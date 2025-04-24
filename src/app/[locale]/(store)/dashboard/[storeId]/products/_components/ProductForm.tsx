@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AvailableItemTable,
+  CategoryTable,
+  ColorTable,
+  ProductItemTable,
+  ProductTable,
+  SizeTable,
+} from "@/drizzle/schema";
 import { ProductSchema, ProductValidator } from "@/lib/validators/product";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -35,15 +43,6 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import AddBtn from "./AddBtn";
 import AvailableForm from "./AvailableForm";
-import {
-  AvailableItemTable,
-  CategoryTable,
-  ColorTable,
-  ProductItemTable,
-  ProductTable,
-  SizeTable,
-} from "@/drizzle/schema";
-import { getCurrentUser } from "@/services/clerk";
 
 type ProductItemType = typeof ProductItemTable.$inferSelect & {
   availableItems: (typeof AvailableItemTable.$inferSelect)[];
@@ -53,7 +52,16 @@ type Props = {
   data?: typeof ProductTable.$inferSelect & {
     productItems: ProductItemType[];
   };
-  currentUser: Awaited<ReturnType<typeof getCurrentUser> | null>;
+  currentUser: {
+    role: "USER" | "ADMIN" | "SELLER";
+    name: string;
+    id: string;
+    email: string;
+    clerkUserId: string;
+    imageUrl: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null;
 };
 
 const ProductForm = ({ data, currentUser }: Props) => {

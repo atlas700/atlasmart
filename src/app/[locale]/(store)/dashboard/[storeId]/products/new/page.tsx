@@ -3,8 +3,14 @@ import Container from "@/components/Container";
 import ViewVideo from "../_components/ViewVideo";
 import ProductForm from "../_components/ProductForm";
 import { Separator } from "@/components/ui/separator";
+import { getCurrentUser } from "@/services/clerk";
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  const { user, redirectToSignIn } = await getCurrentUser({ allData: true });
+  if (!user) {
+    return redirectToSignIn();
+  }
+
   return (
     <Container>
       <div className="flex items-center justify-between gap-3">
@@ -18,7 +24,7 @@ export default function NewProductPage() {
 
       <Separator className="my-4" />
 
-      <ProductForm />
+      <ProductForm currentUser={user} />
     </Container>
   );
 }

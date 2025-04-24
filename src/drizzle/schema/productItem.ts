@@ -31,10 +31,6 @@ export const ProductItemRelationships = relations(
       fields: [ProductItemTable.productId],
       references: [ProductTable.id],
     }),
-    color: one(ColorTable, {
-      fields: [ProductItemTable.colorIds],
-      references: [ColorTable.id],
-    }),
     orderItems: many(OrderItemTable),
     availableItems: many(AvailableItemTable),
     cartItems: many(CartItemTable),

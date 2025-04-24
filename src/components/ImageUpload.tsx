@@ -1,11 +1,16 @@
 "use client";
 
-import { getCurrentUser } from "@/services/clerk";
-import { ImagePlus, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
+import { useDropzone } from "react-dropzone";
+import { Trash2, ImagePlus } from "lucide-react";
+import useCurrentUser from "@/hooks/use-current-user";
+import { generateReactHelpers } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+// Generate the React helpers for UploadThing
+const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 type Props = {
   value?: string | string[];
@@ -14,8 +19,17 @@ type Props = {
   storeId?: string;
   testId?: string;
   userTestId?: string;
-  onChange: (base64: string | string[]) => void;
-  currentUser: Awaited<ReturnType<typeof getCurrentUser> | null>;
+  onChange: (value: string | string[]) => void;
+  currentUser: {
+    role: "USER" | "ADMIN" | "SELLER";
+    name: string;
+    id: string;
+    email: string;
+    clerkUserId: string;
+    imageUrl: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null;
 };
 
 const ImageUpload = ({
@@ -28,18 +42,47 @@ const ImageUpload = ({
   onChange,
   currentUser,
 }: Props) => {
-  const user = currentUser?.user;
-
+  const user = currentUser;
   const [base64, setBase64] = useState(value);
+  const [files, setFiles] = useState<File[]>([]);
+
+  // Use the profile or product endpoint based on the component's usage
+  const endpoint = forProduct ? "productImages" : "profileImage";
+
+  const { startUpload, isUploading } = useUploadThing("imageUploader", {
+    onClientUploadComplete: (res) => {
+      if (!res) return;
+
+      const uploadedUrls = res.map((file) => file.url);
+
+      if (forProduct) {
+        const updatedBase64 = Array.isArray(base64)
+          ? [...base64, ...uploadedUrls]
+          : uploadedUrls;
+
+        setBase64(updatedBase64);
+        onChange(updatedBase64);
+      } else {
+        setBase64(uploadedUrls[0]);
+        onChange(uploadedUrls[0]);
+      }
+
+      setFiles([]);
+    },
+    onUploadError: () => {
+      toast.error("Could not upload! Try again later.");
+    },
+  });
 
   const maxFiles = forProduct ? 6 : 1;
 
   const isDisabled =
-    disabled || (Array.isArray(base64) && base64.length >= maxFiles);
+    disabled ||
+    isUploading ||
+    (Array.isArray(base64) && base64.length >= maxFiles);
 
   const clearImage = () => {
     setBase64("");
-
     onChange("");
   };
 
@@ -47,70 +90,27 @@ const ImageUpload = ({
     if (!Array.isArray(base64)) return;
 
     const newBase64 = [...base64];
-
     newBase64.splice(index, 1);
-
     setBase64(newBase64);
-
     onChange(newBase64);
   };
 
-  const handleDrop = (files: any) => {
+  const handleDrop = async (droppedFiles: File[]) => {
     if (!user) return;
 
-    const file = files[0];
-
-    const reader = new FileReader();
-
-    reader.readAsDataURL(file);
-
-    reader.onload = async (e: any) => {
-      setBase64(e.target.result);
-
-      const imgUrl = await uploadToStorage({
-        file: e.target.result,
-        userId: user?.id,
-      });
-
-      onChange(imgUrl || "");
-    };
-  };
-
-  const handleProductDrop = async (files: any) => {
-    if (!user || !storeId) return;
-
-    const imgUrls = await readAllFiles(files).then(async (result) => {
-      const urls = await uploadProductImages({
-        selectedFiles: result,
-        userId: user?.id,
-        storeId,
-      });
-
-      return urls;
-    });
-
-    const updatedBase64 = Array.isArray(base64)
-      ? imgUrls
-        ? [...base64, ...imgUrls]
-        : [...base64]
-      : imgUrls;
-
-    setBase64(updatedBase64);
-
-    onChange(updatedBase64 || []);
+    setFiles(droppedFiles);
+    await startUpload(droppedFiles);
   };
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: forProduct,
     maxFiles,
     maxSize: 2 * 1024 * 1024,
-    onDrop: forProduct ? handleProductDrop : handleDrop,
+    onDrop: handleDrop,
     onDropRejected: () => {
       toast.error("Could not upload! Try again later.");
-
-      return;
     },
-    disabled: forProduct ? isDisabled : disabled,
+    disabled: isDisabled,
     accept: {
       "image/*": [],
     },
@@ -139,6 +139,12 @@ const ImageUpload = ({
               </span>
 
               <span className="text-xs">Product Items Images (2MB Each)</span>
+
+              {isUploading && (
+                <span className="text-xs mt-2 text-violet-600">
+                  Uploading...
+                </span>
+              )}
             </div>
           </div>
 
@@ -183,6 +189,12 @@ const ImageUpload = ({
               </span>
 
               <span className="text-sm">Profile Image (2MB)</span>
+
+              {isUploading && (
+                <span className="text-sm mt-2 text-violet-600">
+                  Uploading...
+                </span>
+              )}
             </div>
           )}
 
@@ -196,7 +208,7 @@ const ImageUpload = ({
               />
 
               <Trash2
-                className="absolute -top-1 -right-0 cursor-ponter text-red-500"
+                className="absolute -top-1 -right-0 cursor-pointer text-red-500"
                 onClick={clearImage}
               />
             </div>

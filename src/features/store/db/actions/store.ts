@@ -20,8 +20,6 @@ import { redis } from "@/lib/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 import { and, eq } from "drizzle-orm";
 
-// TODO: ADDING THE SELLER DASHBOARD PAGE
-
 const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "5 m"),

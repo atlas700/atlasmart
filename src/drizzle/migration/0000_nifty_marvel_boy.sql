@@ -105,7 +105,7 @@ CREATE TABLE "product_item" (
 	"images" text[] NOT NULL,
 	"discount" numeric DEFAULT 0 NOT NULL,
 	"productId" uuid NOT NULL,
-	"colorId" uuid NOT NULL,
+	"colorIds" uuid[],
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -209,7 +209,6 @@ ALTER TABLE "product" ADD CONSTRAINT "product_userId_users_id_fk" FOREIGN KEY ("
 ALTER TABLE "product" ADD CONSTRAINT "product_storeId_stores_id_fk" FOREIGN KEY ("storeId") REFERENCES "public"."stores"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product" ADD CONSTRAINT "product_categoryId_categories_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_item" ADD CONSTRAINT "product_item_productId_product_id_fk" FOREIGN KEY ("productId") REFERENCES "public"."product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "product_item" ADD CONSTRAINT "product_item_colorId_color_id_fk" FOREIGN KEY ("colorId") REFERENCES "public"."color"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "return_item" ADD CONSTRAINT "return_item_orderItemId_order_item_id_fk" FOREIGN KEY ("orderItemId") REFERENCES "public"."order_item"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "return_item" ADD CONSTRAINT "return_item_returnRequestId_return_request_id_fk" FOREIGN KEY ("returnRequestId") REFERENCES "public"."return_request"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "return_request" ADD CONSTRAINT "return_request_orderId_order_id_fk" FOREIGN KEY ("orderId") REFERENCES "public"."order"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

@@ -1,5 +1,5 @@
 {
-  "id": "3ba17258-e4af-43be-b932-ccc7ed9231d9",
+  "id": "235b8a9a-76eb-446d-ac98-4fe875391297",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1206,11 +1206,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "colorId": {
-          "name": "colorId",
-          "type": "uuid",
+        "colorIds": {
+          "name": "colorIds",
+          "type": "uuid[]",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -1235,19 +1235,6 @@
           "tableTo": "product",
           "columnsFrom": [
             "productId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "product_item_colorId_color_id_fk": {
-          "name": "product_item_colorId_color_id_fk",
-          "tableFrom": "product_item",
-          "tableTo": "color",
-          "columnsFrom": [
-            "colorId"
           ],
           "columnsTo": [
             "id"

@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745294458594,
-      "tag": "0000_wild_rawhide_kid",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1745390156340,
-      "tag": "0001_ancient_outlaw_kid",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1745390220312,
-      "tag": "0002_chemical_silver_sable",
+      "when": 1745474693631,
+      "tag": "0000_nifty_marvel_boy",
       "breakpoints": true
     }
   ]

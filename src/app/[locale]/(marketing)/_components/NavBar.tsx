@@ -2,15 +2,14 @@ import Container from "@/components/Container";
 import LocaleSelector from "@/components/locale-selector";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import UserAccount from "@/components/UserAccount";
+import { userRoles } from "@/drizzle/schema";
 import { getTranslation } from "@/lib/i18n/getTranslation";
 import { getCurrentUser } from "@/services/clerk";
+import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Locale } from "../../../../../i18n";
 import SearchBar from "./SearchBar";
-import { UserButton } from "@clerk/nextjs";
-import { userRoles } from "@/drizzle/schema";
 
 export default async function NavBar({ locale }: { locale: Locale }) {
   const translation = await getTranslation(locale);
