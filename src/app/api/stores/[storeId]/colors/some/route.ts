@@ -1,41 +1,38 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import { db } from "@/drizzle/db";
+import { ColorTable, StoreTable, userRoles } from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq } from "drizzle-orm";
 
 export async function POST(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -44,18 +41,18 @@ export async function POST(
 
     const colors = await Promise.all(
       colorIds.map(async (id: string) => {
-        const color = await prismadb.color.findUnique({
-          where: { id, storeId },
+        const color = await db.query.ColorTable.findMany({
+          where: and(eq(ColorTable.id, id), eq(ColorTable.storeId, storeId)),
         });
 
         return color;
       })
     );
 
-    return NextResponse.json(colors);
+    return Response.json(colors);
   } catch (err) {
     console.log("[COLOR_GET_SOME]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

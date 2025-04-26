@@ -1,63 +1,71 @@
-import prismadb from "@/lib/prisma";
-import { apiRatelimit } from "@/lib/redis";
-import { NextResponse } from "next/server";
-import { getCurrentPrice } from "@/lib/utils";
-import { checkText } from "@/actions/checkText";
-import { currentUser } from "@/lib/auth";
-import { UserRole, storeStatus } from "@prisma/client";
-import { ProductSchema } from "@/lib/validators/product";
+import { db } from "@/drizzle/db";
+import {
+  AvailableItemTable,
+  CategoryTable,
+  ProductItemTable,
+  ProductTable,
+  storeStatuses,
+  StoreTable,
+  userRoles,
+} from "@/drizzle/schema";
 import { sendDeletedProductEmail, sendUpdatedProductEmail } from "@/lib/mail";
+import { apiRatelimit } from "@/lib/redis";
+import { getCurrentPrice } from "@/lib/utils";
+import { ProductSchema } from "@/lib/validators/product";
+import { getCurrentUser } from "@/services/clerk";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { UUIDTypes } from "uuid";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string; productId: string } }
+  { params }: { params: Promise<{ storeId: string; productId: string }> }
 ) {
   try {
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user || !user.id) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     const { success } = await apiRatelimit.limit(user.id);
 
     if (!success && process.env.VERCEL_ENV === "production") {
-      return NextResponse.json("Too Many Requests! try again in 1 min", {
-        status: 429,
-      });
+      return new Response(
+        JSON.stringify("Too Many Requests! try again in 1 min"),
+        {
+          status: 429,
+        }
+      );
     }
 
-    const { storeId, productId } = params;
+    const { storeId, productId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     //Check if store has been approved
-    if (store.status !== storeStatus.APPROVED) {
-      return new NextResponse("Unauthorized, Store not approved yet!", {
+    if (store.status !== storeStatuses[2]) {
+      return new Response("Unauthorized, Store not approved yet!", {
         status: 401,
       });
     }
@@ -69,73 +77,41 @@ export async function PATCH(
     try {
       validatedBody = ProductSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { name, categoryId, description, productItems } = validatedBody;
 
     //Check if there is at least one product item
     if (productItems.length < 1) {
-      return new NextResponse("At least one product item is required.", {
+      return new Response("At least one product item is required.", {
         status: 400,
       });
     }
 
-    if (process.env.VERCEL_ENV === "production") {
-      //Check if name and desctiption are appropiate
-      const nameIsAppropiate = await checkText({ text: name });
-
-      if (
-        nameIsAppropiate.success === "NEGATIVE" ||
-        nameIsAppropiate.success === "MIXED" ||
-        nameIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The name of your product is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-
-      const descriptionIsAppropiate = await checkText({ text: description });
-
-      if (
-        descriptionIsAppropiate.success === "NEGATIVE" ||
-        descriptionIsAppropiate.success === "MIXED" ||
-        descriptionIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The description of your product is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
     //Check if product exists
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-        storeId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: and(
+        eq(ProductTable.id, productId),
+        eq(ProductTable.storeId, storeId)
+      ),
     });
 
     if (!product) {
-      return new NextResponse("Product not found", {
+      return new Response("Product not found", {
         status: 404,
       });
     }
 
     //Check if there is an existing product item
-    const existingProductItems = await prismadb.productItem.findMany({
-      where: {
-        id: {
-          in: [...productItems.map((item) => item.id)],
-        },
-      },
-      include: {
+    const existingProductItems = await db.query.ProductItemTable.findMany({
+      where: inArray(
+        ProductItemTable.id,
+        productItems.map((item) => item.id)
+      ),
+      with: {
         availableItems: true,
       },
     });
@@ -148,34 +124,32 @@ export async function PATCH(
         );
 
         if (existingItem) {
-          await prismadb.productItem.update({
-            where: {
-              id: existingItem.id,
-              productId: product.id,
-            },
-            data: {
+          await db
+            .update(ProductItemTable)
+            .set({
               colorIds: item.colorIds || [],
               images: item.images,
               discount: item.discount || 0,
-            },
-          });
+            })
+            .where(
+              and(
+                eq(ProductItemTable.id, existingItem.id),
+                eq(ProductItemTable.productId, product.id)
+              )
+            );
 
           const updatedAvailableItems = item.availableItems;
 
           await Promise.all(
             updatedAvailableItems.map(async (item) => {
-              const existingAvaliableItem = existingItem.availableItems.find(
+              const existingAvailableItem = existingItem.availableItems.find(
                 (existingItem) => existingItem.id === item.id
               );
 
-              if (existingAvaliableItem) {
-                await prismadb.available.update({
-                  where: {
-                    id: item.id,
-                    productId: product.id,
-                    productItemId: existingItem.id,
-                  },
-                  data: {
+              if (existingAvailableItem) {
+                await db
+                  .update(AvailableItemTable)
+                  .set({
                     sizeId: item.sizeId,
                     numInStocks: item.numInStocks,
                     originalPrice: item.price,
@@ -183,49 +157,55 @@ export async function PATCH(
                       price: item.price,
                       discount: existingItem.discount || 0,
                     }),
-                  },
-                });
+                  })
+                  .where(
+                    and(
+                      eq(AvailableItemTable.id, item.id),
+                      eq(
+                        AvailableItemTable.productId,
+                        existingAvailableItem.productId
+                      ),
+                      eq(AvailableItemTable.productItemId, existingItem.id)
+                    )
+                  );
               } else {
-                await prismadb.available.create({
-                  data: {
-                    productId: product.id,
-                    productItemId: existingItem.id,
-                    sizeId: item.sizeId,
-                    numInStocks: item.numInStocks,
-                    originalPrice: item.price,
-                    currentPrice: getCurrentPrice({
-                      price: item.price,
-                      discount: existingItem.discount || 0,
-                    }),
-                  },
-                });
-              }
-            })
-          );
-        } else {
-          const productItem = await prismadb.productItem.create({
-            data: {
-              productId: product.id,
-              colorIds: item.colorIds || [],
-              images: item.images,
-              discount: item.discount || 0,
-            },
-          });
-
-          await Promise.all(
-            item.availableItems.map(async (item) => {
-              await prismadb.available.create({
-                data: {
+                await db.insert(AvailableItemTable).values({
                   productId: product.id,
-                  productItemId: productItem.id,
+                  productItemId: existingItem.id,
                   sizeId: item.sizeId,
                   numInStocks: item.numInStocks,
                   originalPrice: item.price,
                   currentPrice: getCurrentPrice({
                     price: item.price,
-                    discount: productItem.discount || 0,
+                    discount: existingItem.discount || 0,
                   }),
-                },
+                });
+              }
+            })
+          );
+        } else {
+          const [productItem] = await db
+            .insert(ProductItemTable)
+            .values({
+              productId: product.id,
+              colorIds: item.colorIds || [],
+              images: item.images,
+              discount: item.discount || 0,
+            })
+            .returning();
+
+          await Promise.all(
+            item.availableItems.map(async (item) => {
+              await db.insert(AvailableItemTable).values({
+                productId: product.id,
+                productItemId: productItem.id,
+                sizeId: item.sizeId,
+                numInStocks: item.numInStocks,
+                originalPrice: item.price,
+                currentPrice: getCurrentPrice({
+                  price: item.price,
+                  discount: productItem.discount || 0,
+                }),
               });
             })
           );
@@ -234,28 +214,25 @@ export async function PATCH(
     );
 
     //Update Product
-    const updatedProduct = await prismadb.product.update({
-      where: {
-        id: productId,
-        storeId,
-      },
-      data: {
+    const [updatedProduct] = await db
+      .update(ProductTable)
+      .set({
         name,
         categoryId,
         description,
         status: "APPROVED",
         statusFeedback:
           "Your product has been approved. It will be shown to potential customers.",
-      },
-      select: {
-        name: true,
+      })
+      .where(
+        and(eq(ProductTable.id, productId), eq(ProductTable.storeId, storeId))
+      )
+      .returning({
+        name: ProductTable.name,
         category: {
-          select: {
-            name: true,
-          },
+          name: CategoryTable.name,
         },
-      },
-    });
+      });
 
     //Send email confirmation
     await sendUpdatedProductEmail({
@@ -266,81 +243,77 @@ export async function PATCH(
       categoryName: updatedProduct.category.name,
     });
 
-    return NextResponse.json({ message: "Product Updated!" });
+    return new Response(JSON.stringify({ message: "Product Updated!" }));
   } catch (err) {
     console.log("[PRODUCT_UPDATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { storeId: string; productId: string } }
+  { params }: { params: Promise<{ storeId: string; productId: string }> }
 ) {
   try {
-    const { storeId, productId } = params;
+    const { storeId, productId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
     if (user.role !== "SELLER") {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     //Check if store has been approved
-    if (store.status !== storeStatus.APPROVED) {
-      return new NextResponse("Unauthorized, Store not approved yet!", {
+    if (store.status !== storeStatuses[2]) {
+      return new Response("Unauthorized, Store not approved yet!", {
         status: 401,
       });
     }
 
     //Check if product exists
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-        storeId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: and(
+        eq(ProductTable.id, productId),
+        eq(ProductTable.storeId, storeId)
+      ),
     });
 
     if (!product) {
-      return new NextResponse("Product not found", {
+      return new Response("Product not found", {
         status: 404,
       });
     }
 
     //Delete Product
-    await prismadb.product.delete({
-      where: {
-        id: product.id,
-        storeId,
-      },
-    });
+    await db
+      .delete(ProductTable)
+      .where(
+        and(eq(ProductTable.id, product.id), eq(ProductTable.storeId, storeId))
+      );
 
     //Send email confirmation
     await sendDeletedProductEmail({
@@ -350,86 +323,81 @@ export async function DELETE(
       productName: product.name || "Unknown",
     });
 
-    return NextResponse.json({ message: "Product Deleted!" });
+    return new Response(JSON.stringify({ message: "Product Deleted!" }));
   } catch (err) {
     console.log("[PRODUCT_DELETE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function GET(
   request: Request,
-  { params }: { params: { storeId: string; productId: string } }
+  { params }: { params: Promise<{ storeId: string; productId: string }> }
 ) {
   try {
-    const { storeId, productId } = params;
+    const { storeId, productId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
     if (user.role !== "SELLER") {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     //Check if store has been approved
-    if (store.status !== storeStatus.APPROVED) {
-      return new NextResponse("Unauthorized, Store not approved yet!", {
+    if (store.status !== storeStatuses[2]) {
+      return new Response("Unauthorized, Store not approved yet!", {
         status: 401,
       });
     }
 
     //Get Product
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-        storeId,
-      },
-      include: {
+    const product = await db.query.ProductTable.findFirst({
+      where: and(
+        eq(ProductTable.id, productId),
+        eq(ProductTable.storeId, storeId)
+      ),
+      with: {
         productItems: {
-          include: {
+          with: {
             availableItems: {
-              include: {
+              with: {
                 size: true,
               },
             },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
         },
       },
+      orderBy: desc(ProductTable.createdAt),
     });
 
-    return NextResponse.json(product);
+    return new Response(JSON.stringify(product));
   } catch (err) {
     console.log("[PRODUCT_GET]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

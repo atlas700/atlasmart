@@ -1,16 +1,16 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { redirect } from "next/navigation";
-import Heading from "@/components/Heading";
 import Container from "@/components/Container";
-import { columns } from "./_components/Columns";
-import NotApproved from "./_components/NotApproved";
-import { Separator } from "@/components/ui/separator";
-import { DataTable } from "@/components/ui/data-table";
+import Heading from "@/components/Heading";
 import { buttonVariants } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { Separator } from "@/components/ui/separator";
+import { storeStatuses } from "@/drizzle/schema";
 import { getProductsByStoreId, getStore } from "@/features/store/db/store";
 import { getCurrentUser } from "@/services/clerk";
-import { storeStatuses } from "@/drizzle/schema";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { columns } from "./_components/Columns";
+import NotApproved from "./_components/NotApproved";
 
 export default async function ProductsPage({
   params,
@@ -22,7 +22,7 @@ export default async function ProductsPage({
   const { user } = await getCurrentUser({ allData: true });
 
   if (!user) {
-    return redirect("/auth/sign-in");
+    return redirect("/sign-in");
   }
 
   const store = await getStore({ userId: user.id, storeId });

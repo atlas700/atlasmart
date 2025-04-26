@@ -8,7 +8,7 @@ import {
   StoreTable,
   StoreVerificationTokenTable,
 } from "@/drizzle/schema";
-import { and, countDistinct, desc, eq, isNotNull } from "drizzle-orm";
+import { and, countDistinct, desc, eq, isNotNull, sql } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
   try {
@@ -263,8 +263,9 @@ export const getProductsByStoreId = async ({
       return [];
     }
 
-    const products = await db
+    const raw = await db
       .select({
+        // ── product columns ─────────────────────────────────────────────────────
         id: ProductTable.id,
         userId: ProductTable.userId,
         storeId: ProductTable.storeId,
@@ -275,44 +276,40 @@ export const getProductsByStoreId = async ({
         statusFeedback: ProductTable.statusFeedback,
         createdAt: ProductTable.createdAt,
         updatedAt: ProductTable.updatedAt,
-        category: {
-          name: CategoryTable.name,
-        },
-        _count: {
-          productItems: countDistinct(ProductItemTable.id),
-        },
+        // ── join in category name ──────────────────────────────────────────────
+        categoryName: CategoryTable.name,
+        // ── count related productItems ────────────────────────────────────────
+        productItemsCount: db.$count(
+          ProductItemTable,
+          eq(ProductItemTable.productId, ProductTable.id)
+        ),
       })
       .from(ProductTable)
+      .leftJoin(CategoryTable, eq(CategoryTable.id, ProductTable.categoryId))
       .where(
-        and(eq(ProductTable.storeId, storeId), eq(ProductTable.userId, userId))
-      )
-      .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
-      .leftJoin(
-        ProductItemTable,
-        eq(ProductTable.id, ProductItemTable.productId)
+        and(eq(ProductTable.userId, userId), eq(ProductTable.storeId, storeId))
       )
       .orderBy(desc(ProductTable.createdAt));
-    // const products = await prismadb.product.findMany({
-    //   where: {
-    //     userId,
-    //     storeId,
-    //   },
-    //   include: {
-    //     category: {
-    //       select: {
-    //         name: true,
-    //       },
-    //     },
-    //     _count: {
-    //       select: {
-    //         productItems: true,
-    //       },
-    //     },
-    //   },
-    //   orderBy: {
-    //     createdAt: "desc",
-    //   },
-    // });
+
+    const products = raw.map((r) => ({
+      // all original product fields
+      id: r.id,
+      userId: r.userId,
+      storeId: r.storeId,
+      name: r.name,
+      categoryId: r.categoryId,
+      description: r.description,
+      status: r.status,
+      statusFeedback: r.statusFeedback,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+
+      // nest category
+      category: { name: r.categoryName },
+
+      // nest count
+      _count: { productItems: r.productItemsCount },
+    }));
 
     return products;
   } catch (err) {

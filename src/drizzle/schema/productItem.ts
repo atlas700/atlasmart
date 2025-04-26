@@ -15,10 +15,7 @@ export const ProductItemTable = pgTable("product_item", {
   productId: uuid()
     .notNull()
     .references(() => ProductTable.id, { onDelete: "cascade" }),
-  colorIds: uuid()
-    .notNull()
-    .references(() => ColorTable.id, { onDelete: "cascade" })
-    .array(),
+  colorIds: text().notNull().array(),
 
   createdAt,
   updatedAt,
