@@ -2,7 +2,7 @@
 
 import { generateStoreVerificationToken } from "@/lib/token";
 import { StoreSchema, StoreValidator } from "@/lib/validators/store";
-import { getCurrentUser } from "@/services/clerk";
+import { getCurrentUser, syncClerkUserMetadata } from "@/services/clerk";
 import { postcodeValidator } from "postcode-validator";
 import { getStoreVerificationTokenByEmail } from "../store";
 
@@ -53,20 +53,6 @@ export const createStore = async (values: StoreValidator) => {
   }
 
   const { name, email, country, postcode, code } = validatedFields.data;
-
-  //   TODO: deny it for now | aws services need credit card to use it.
-  //   if (process.env.VERCEL_ENV === "production") {
-  //     //Check if name and desctiption are appropiate
-  //     const nameIsAppropiate = await checkText({ text: name });
-
-  //     if (
-  //       nameIsAppropiate.success === "NEGATIVE" ||
-  //       nameIsAppropiate.success === "MIXED" ||
-  //       nameIsAppropiate.error
-  //     ) {
-  //       return { error: "The name of your store is inappropiate! Change it" };
-  //     }
-  //   }
 
   // Check if postcode is valid
   const locationIsValid = postcodeValidator(postcode, country);
@@ -162,6 +148,12 @@ export const createStore = async (values: StoreValidator) => {
         })
         .where(and(eq(UserTable.id, dbUser.id)))
         .returning();
+
+      await syncClerkUserMetadata({
+        clerkUserId: user.clerkUserId,
+        id: user.id,
+        role: "SELLER",
+      });
 
       //Send email notification
       await sendCreatedStoreEmail({

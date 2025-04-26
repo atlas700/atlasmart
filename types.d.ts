@@ -116,7 +116,7 @@ export type AdminOrderStatusChange =
   | "DELIVERED";
 
 export type ReturnItemProps = ReturnItemTable & {
-  orderitem: {
+  orderItem: {
     quantity: number;
     product: {
       name: string;

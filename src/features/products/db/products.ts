@@ -8,7 +8,7 @@ import {
   SizeTable,
 } from "@/drizzle/schema";
 import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
-import { and, desc, eq, exists, gt } from "drizzle-orm";
+import { and, desc, eq, exists, gt, sql } from "drizzle-orm";
 
 export const getHomePageProducts = async () => {
   try {
@@ -126,5 +126,64 @@ export const getHomePageProducts = async () => {
     return products;
   } catch (err) {
     return [];
+  }
+};
+
+export const getProductById = async (productId: string) => {
+  try {
+    if (!productId) {
+      return null;
+    }
+
+    const product = await db.query.ProductTable.findFirst({
+      where: and(
+        eq(ProductTable.id, productId),
+        eq(ProductTable.status, "APPROVED"),
+        sql`exists (
+      select 1 from ${ProductItemTable}
+      where ${ProductItemTable.productId} = ${ProductTable.id}
+      and exists (
+        select 1 from ${AvailableItemTable}
+        where ${AvailableItemTable.productItemId} = ${ProductItemTable.id}
+        and ${AvailableItemTable.numInStocks} > 0
+      )
+    )`
+      ),
+      with: {
+        category: true,
+        store: {
+          columns: {
+            name: true,
+            logo: true,
+          },
+        },
+        productItems: {
+          where: sql`exists (
+        select 1 from ${AvailableItemTable}
+        where ${AvailableItemTable.productItemId} = ${ProductItemTable.id}
+        and ${AvailableItemTable.numInStocks} > 0
+      )`,
+          with: {
+            availableItems: {
+              orderBy: (availableItems, { desc }) => [
+                desc(availableItems.createdAt),
+              ],
+              with: {
+                size: true,
+              },
+            },
+          },
+        },
+        reviews: {
+          columns: {
+            value: true,
+          },
+        },
+      },
+    });
+
+    return product;
+  } catch (err) {
+    return null;
   }
 };

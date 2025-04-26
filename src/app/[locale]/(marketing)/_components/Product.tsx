@@ -6,6 +6,7 @@ import { HomeProductType } from "../../../../../types";
 import { useRouter } from "next/navigation";
 import { cn, formatPrice } from "@/lib/utils";
 import AverageRating from "@/components/AverageRating";
+import { ProductItemTable } from "@/drizzle/schema";
 
 type Props = {
   product: HomeProductType;
@@ -26,7 +27,11 @@ const Product = ({ product }: Props) => {
       data-cy={`feed-product-${product.id}`}
     >
       <ProductImg
-        images={product?.productItems?.map((item: any) => item.images[0]) || []}
+        images={
+          product?.productItems?.map(
+            (item: typeof ProductItemTable.$inferSelect) => item.images[0]
+          ) || []
+        }
       />
 
       <div className="px-2 py-3">

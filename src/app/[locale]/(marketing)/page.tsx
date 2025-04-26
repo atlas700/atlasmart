@@ -104,8 +104,9 @@ export default async function Home({ params }: Props) {
           <Heading title="Products" description="View all product" />
 
           <div className="my-4" />
-
-          <Feed initialData={products} />
+          <Suspense fallback="Loading products...">
+            <Feed initialData={products} />
+          </Suspense>
         </Container>
       </div>
     </Suspense>

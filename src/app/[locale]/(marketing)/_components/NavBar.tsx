@@ -33,7 +33,7 @@ export default async function NavBar({ locale }: { locale: Locale }) {
             {user?.id ? (
               <div className="flex items-center gap-2 sm:gap-4">
                 {user.role === userRoles[1] && (
-                  <Button asChild size={"sm"}>
+                  <Button asChild size={"sm"} variant={"ghost"}>
                     <Link href={"/admin"}>Admin Dashboard</Link>
                   </Button>
                 )}

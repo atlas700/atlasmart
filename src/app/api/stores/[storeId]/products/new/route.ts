@@ -155,8 +155,6 @@ export async function POST(
 
     return new Response(JSON.stringify({ message: "Product Created!" }));
   } catch (err) {
-    console.log("[PRODUCT_CREATE]", err);
-
     return new Response("Internal Error", { status: 500 });
   }
 }
