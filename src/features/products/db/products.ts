@@ -135,43 +135,43 @@ export const getProductById = async (productId: string) => {
       return null;
     }
 
+    // Try an alternative approach for the exists subquery
     const product = await db.query.ProductTable.findFirst({
       where: and(
         eq(ProductTable.id, productId),
-        eq(ProductTable.status, "APPROVED"),
-        sql`exists (
-      select 1 from ${ProductItemTable}
-      where ${ProductItemTable.productId} = ${ProductTable.id}
-      and exists (
-        select 1 from ${AvailableItemTable}
-        where ${AvailableItemTable.productItemId} = ${ProductItemTable.id}
-        and ${AvailableItemTable.numInStocks} > 0
-      )
-    )`
+        eq(ProductTable.status, "APPROVED")
       ),
       with: {
+        productItems: {
+          where: (productItems) =>
+            exists(
+              db
+                .select({ value: sql`1` })
+                .from(AvailableItemTable)
+                .where(
+                  and(
+                    eq(AvailableItemTable.productItemId, productItems.id),
+                    gt(AvailableItemTable.numInStocks, 0)
+                  )
+                )
+            ),
+          with: {
+            availableItems: {
+              where: gt(AvailableItemTable.numInStocks, 0),
+              with: {
+                size: true,
+              },
+              orderBy: (availableItems, { desc }) => [
+                desc(availableItems.createdAt),
+              ],
+            },
+          },
+        },
         category: true,
         store: {
           columns: {
             name: true,
             logo: true,
-          },
-        },
-        productItems: {
-          where: sql`exists (
-        select 1 from ${AvailableItemTable}
-        where ${AvailableItemTable.productItemId} = ${ProductItemTable.id}
-        and ${AvailableItemTable.numInStocks} > 0
-      )`,
-          with: {
-            availableItems: {
-              orderBy: (availableItems, { desc }) => [
-                desc(availableItems.createdAt),
-              ],
-              with: {
-                size: true,
-              },
-            },
           },
         },
         reviews: {
