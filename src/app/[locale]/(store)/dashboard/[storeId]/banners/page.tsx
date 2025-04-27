@@ -3,16 +3,18 @@ import { Plus } from "lucide-react";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
-import { getBannersByStoreId } from "@/data/store";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { buttonVariants } from "@/components/ui/button";
+import { getBannersByStoreId } from "@/features/store/db/store";
 
 export default async function StoreBannersPage({
-  params: { storeId },
+  params,
 }: {
-  params: { storeId: string };
+  params: Promise<{ storeId: string }>;
 }) {
+  const { storeId } = await params;
+
   const banners = await getBannersByStoreId(storeId);
 
   return (

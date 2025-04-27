@@ -9,7 +9,7 @@ import {
   StoreTable,
   StoreVerificationTokenTable,
 } from "@/drizzle/schema";
-import { and, countDistinct, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
   try {
