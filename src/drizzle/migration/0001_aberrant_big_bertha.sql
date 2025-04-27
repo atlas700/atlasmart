@@ -1,1 +1,0 @@
-ALTER TABLE "product_item" ALTER COLUMN "colorIds" SET DATA TYPE text[];

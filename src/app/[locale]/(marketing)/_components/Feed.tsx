@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
-import Product from "./Product";
 import Empty from "@/components/Empty";
-import { HomeProductType } from "../../../../../types.d";
-import Spinner from "@/components/Spinner";
 import ProductSkeleton from "@/components/ProductSkeleton";
-import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
+import Spinner from "@/components/Spinner";
 import useUnlimitedScrolling from "@/hooks/use-unlimited-scrolling";
+import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
+import { useEffect } from "react";
+import { HomeProductType } from "../../../../../types";
+import Product from "./Product";
 
 type Props = {
   initialData: HomeProductType[];
@@ -28,29 +28,31 @@ const Feed = ({ initialData }: Props) => {
     initialData,
   });
 
-  //@ts-ignore
-  const products: ProductType[] =
-    data?.pages?.flatMap((page: any) => page) ?? initialData;
+  // Make sure we have a stable, consistent data structure
+  const products = data?.pages
+    ? data.pages.flatMap((page: any) => (page?.length ? page : []))
+    : initialData || [];
 
-  //When you scroll to the bottom it triggers the fetchNextPage() to fetch more products
+  // When you scroll to the bottom it triggers the fetchNextPage() to fetch more products
   useEffect(() => {
     if (entry?.isIntersecting) {
       fetchNextPage();
     }
   }, [entry, fetchNextPage]);
 
-  if (products.length === 0) {
-    return <Empty message="Sorry, no products found! Try again later." />;
-  }
-
-  if (isLoading) {
+  // Show loading state only on initial load, not when we have products already
+  if (isLoading && products.length === 0) {
     return (
       <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-        {new Array(20).fill("").map((_, i) => (
-          <ProductSkeleton key={i} />
+        {[...Array(20)].map((_, i) => (
+          <ProductSkeleton key={`skeleton-${i}`} />
         ))}
       </div>
     );
+  }
+
+  if (products.length === 0) {
+    return <Empty message="Sorry, no products found! Try again later." />;
   }
 
   return (
@@ -59,17 +61,25 @@ const Feed = ({ initialData }: Props) => {
         className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
         data-testid="product-feed"
       >
-        {products.map((product, i) => {
-          if (i === products.length - 1) {
-            return (
-              <div key={product.id} ref={ref}>
-                <Product product={product} />
-              </div>
-            );
-          } else {
-            return <Product key={product.id} product={product} />;
-          }
-        })}
+        {Array.isArray(products) &&
+          products.map((product, i) => {
+            // Make sure product is valid
+            if (!product || !product.id) {
+              return null;
+            }
+
+            // Last item gets the ref for infinite scrolling
+            if (i === products.length - 1) {
+              return (
+                <div key={`product-${product.id}`} ref={ref}>
+                  <Product product={product} />
+                </div>
+              );
+            }
+
+            // All other items
+            return <Product key={`product-${product.id}`} product={product} />;
+          })}
       </div>
 
       {isFetchingNextPage && <Spinner />}

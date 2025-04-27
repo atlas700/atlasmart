@@ -2,6 +2,7 @@
 
 import { db } from "@/drizzle/db";
 import {
+  BannerTable,
   CategoryTable,
   ProductItemTable,
   ProductTable,
@@ -111,26 +112,22 @@ export const getStoresByUserId = async ({ userId }: { userId: string }) => {
 //   }
 // };
 
-// export const getBannersByStoreId = async (storeId: string) => {
-//   try {
-//     if (!storeId) {
-//       return [];
-//     }
+export const getBannersByStoreId = async (storeId: string) => {
+  try {
+    if (!storeId) {
+      return [];
+    }
 
-//     const banners = await prismadb.banner.findMany({
-//       where: {
-//         storeId,
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    const banners = await db.query.BannerTable.findMany({
+      where: eq(BannerTable.id, storeId),
+      orderBy: desc(BannerTable.createdAt),
+    });
 
-//     return banners;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return banners;
+  } catch (err) {
+    return [];
+  }
+};
 
 // export const getCategoriesByStoreId = async (storeId: string) => {
 //   try {

@@ -105,7 +105,7 @@ CREATE TABLE "product_item" (
 	"images" text[] NOT NULL,
 	"discount" numeric DEFAULT 0 NOT NULL,
 	"productId" uuid NOT NULL,
-	"colorIds" uuid[],
+	"colorIds" text[],
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
