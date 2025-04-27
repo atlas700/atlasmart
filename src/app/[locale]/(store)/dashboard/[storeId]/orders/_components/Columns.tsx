@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import { format } from "date-fns";
-import { StoreOrderCol } from "@/types";
-import CellActions from "./CellActions";
-import { OrderStatus } from "@prisma/client";
-import { ColumnDef } from "@tanstack/react-table";
 import { cn, formatPrice, getOrderStatusText } from "@/lib/utils";
+import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import Image from "next/image";
+import CellActions from "./CellActions";
+import { StoreOrderCol } from "../../../../../../../../types";
+import { orderStatuses } from "@/drizzle/schema";
 
 export const columns: ColumnDef<StoreOrderCol>[] = [
   {
@@ -64,9 +64,8 @@ export const columns: ColumnDef<StoreOrderCol>[] = [
       <div
         className={cn(
           "font-bold text-violet-500",
-          row.original.order.status === OrderStatus.CONFIRMED &&
-            "text-green-500",
-          row.original.order.status === OrderStatus.CANCELLED && "text-red-500"
+          row.original.order.status === orderStatuses[1] && "text-green-500",
+          row.original.order.status === orderStatuses[7] && "text-red-500"
         )}
       >
         {getOrderStatusText(row.original.order.status)}

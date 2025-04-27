@@ -3,16 +3,17 @@ import { Plus } from "lucide-react";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
-import { getSizesByStoreId } from "@/data/store";
+import { getSizesByStoreId } from "@/features/store/db/store";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { buttonVariants } from "@/components/ui/button";
 
 export default async function SizesPage({
-  params: { storeId },
+  params,
 }: {
-  params: { storeId: string };
+  params: Promise<{ storeId: string }>;
 }) {
+  const { storeId } = await params;
   const sizes = await getSizesByStoreId(storeId);
 
   return (

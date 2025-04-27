@@ -1,15 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { toast } from "sonner";
-import ReadyModal from "./ReadyModal";
-import { StoreOrderCol } from "@/types";
-import axios, { AxiosError } from "axios";
-import { OrderStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Truck } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import { MoreVertical, Truck } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import ReadyModal from "./ReadyModal";
+import { StoreOrderCol } from "../../../../../../../../types";
+import { orderStatuses } from "@/drizzle/schema";
 
 type Props = {
   data: StoreOrderCol;
@@ -49,7 +49,7 @@ const CellActions = ({ data }: Props) => {
     },
   });
 
-  if (data.order.status !== OrderStatus.CONFIRMED || data.readyToBeShipped) {
+  if (data.order.status !== orderStatuses[1] || data.readyToBeShipped) {
     return null;
   }
 

@@ -1,4 +1,9 @@
-import { StoreStatus } from "@/drizzle/schema";
+import {
+  OrderStatus,
+  orderStatuses,
+  ProductStatus,
+  StoreStatus,
+} from "@/drizzle/schema";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -77,7 +82,7 @@ export const storeCategories = [
 ];
 
 export const getStoreStatusValue = (status: string) => {
-  let statusValue: storeStatus;
+  let statusValue: StoreStatus;
 
   switch (status) {
     case "pending":
@@ -209,37 +214,37 @@ export const getOrderStatusValue = (status: string) => {
 
   switch (status) {
     case "processing":
-      statusValue = OrderStatus.PROCESSING;
+      statusValue = orderStatuses[0];
       break;
     case "confirmed":
-      statusValue = OrderStatus.CONFIRMED;
+      statusValue = orderStatuses[1];
       break;
     case "readyforshipping":
-      statusValue = OrderStatus.READYFORSHIPPING;
+      statusValue = orderStatuses[3];
       break;
     case "shipped":
-      statusValue = OrderStatus.SHIPPED;
+      statusValue = orderStatuses[4];
       break;
     case "outfordelivery":
-      statusValue = OrderStatus.OUTFORDELIVERY;
+      statusValue = orderStatuses[5];
       break;
     case "delivered":
-      statusValue = OrderStatus.DELIVERED;
+      statusValue = orderStatuses[6];
       break;
     case "cancelled":
-      statusValue = OrderStatus.CANCELLED;
+      statusValue = orderStatuses[7];
       break;
     case "returned":
-      statusValue = OrderStatus.RETURNED;
+      statusValue = orderStatuses[10];
       break;
     case "refunded":
-      statusValue = OrderStatus.REFUNDED;
+      statusValue = orderStatuses[11];
       break;
     case "failed":
-      statusValue = OrderStatus.FAILED;
+      statusValue = orderStatuses[2];
       break;
     default:
-      statusValue = OrderStatus.PROCESSING;
+      statusValue = orderStatuses[0];
       break;
   }
 
@@ -322,40 +327,40 @@ export const getOrderStatusText = (status: OrderStatus) => {
   let text = "";
 
   switch (status) {
-    case OrderStatus.PROCESSING:
+    case orderStatuses[0]:
       text = "Processing";
       break;
-    case OrderStatus.CONFIRMED:
+    case orderStatuses[1]:
       text = "Confirmed";
       break;
-    case OrderStatus.READYFORSHIPPING:
+    case orderStatuses[3]:
       text = "Ready For Shipping";
       break;
-    case OrderStatus.SHIPPED:
+    case orderStatuses[4]:
       text = "Shipped";
       break;
-    case OrderStatus.OUTFORDELIVERY:
+    case orderStatuses[5]:
       text = "Out For Delivery";
       break;
-    case OrderStatus.DELIVERED:
+    case orderStatuses[6]:
       text = "Delivered";
       break;
-    case OrderStatus.CANCELLED:
+    case orderStatuses[7]:
       text = "Cancelled";
       break;
-    case OrderStatus.RETURNED:
+    case orderStatuses[10]:
       text = "Returned";
       break;
-    case OrderStatus.RETURNREQUESTED:
+    case orderStatuses[8]:
       text = "Return requested";
       break;
-    case OrderStatus.RETURNING:
+    case orderStatuses[9]:
       text = "Returning";
       break;
-    case OrderStatus.REFUNDED:
+    case orderStatuses[11]:
       text = "Refunded";
       break;
-    case OrderStatus.FAILED:
+    case orderStatuses[2]:
       text = "Failed";
       break;
     default:

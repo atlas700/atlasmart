@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Banner } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import BannerUpload from "./BannerUpload";
@@ -21,9 +20,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { BannerTable } from "@/drizzle/schema";
 
 type Props = {
-  data?: Banner;
+  data?: typeof BannerTable.$inferSelect;
 };
 
 const BannerForm = ({ data }: Props) => {

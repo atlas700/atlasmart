@@ -4,8 +4,10 @@ import { db } from "@/drizzle/db";
 import {
   BannerTable,
   CategoryTable,
+  ColorTable,
   ProductItemTable,
   ProductTable,
+  SizeTable,
   StoreTable,
   StoreVerificationTokenTable,
 } from "@/drizzle/schema";
@@ -129,75 +131,83 @@ export const getBannersByStoreId = async (storeId: string) => {
   }
 };
 
-// export const getCategoriesByStoreId = async (storeId: string) => {
-//   try {
-//     if (!storeId) {
-//       return [];
-//     }
+export const getCategoriesByStoreId = async (storeId: string) => {
+  try {
+    if (!storeId) {
+      return [];
+    }
+    const categories = await db
+      .select({
+        id: CategoryTable.id,
+        storeId: CategoryTable.storeId,
+        name: CategoryTable.name,
+        createdAt: CategoryTable.createdAt,
+        updatedAt: CategoryTable.updatedAt,
+        _count: {
+          products: db
+            .$count(ProductTable, eq(ProductTable.categoryId, CategoryTable.id))
+            .as("products"),
+        },
+      })
+      .from(CategoryTable)
+      .where(eq(CategoryTable.storeId, storeId))
+      .orderBy(desc(CategoryTable.createdAt));
 
-//     const categories = await prismadb.category.findMany({
-//       where: {
-//         storeId,
-//       },
-//       include: {
-//         _count: {
-//           select: {
-//             products: true,
-//           },
-//         },
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    // const categories = await prismadb.category.findMany({
+    //   where: {
+    //     storeId,
+    //   },
+    //   include: {
+    //     _count: {
+    //       select: {
+    //         products: true,
+    //       },
+    //     },
+    //   },
+    //   orderBy: {
+    //     createdAt: "desc",
+    //   },
+    // });
 
-//     return categories;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return categories;
+  } catch (err) {
+    return [];
+  }
+};
 
-// export const getSizesByStoreId = async (storeId: string) => {
-//   try {
-//     if (!storeId) {
-//       return [];
-//     }
+export const getSizesByStoreId = async (storeId: string) => {
+  try {
+    if (!storeId) {
+      return [];
+    }
 
-//     const sizes = await prismadb.size.findMany({
-//       where: {
-//         storeId,
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    const sizes = await db.query.SizeTable.findMany({
+      where: eq(SizeTable.id, storeId),
+      orderBy: desc(SizeTable.createdAt),
+    });
 
-//     return sizes;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return sizes;
+  } catch (err) {
+    return [];
+  }
+};
 
-// export const getColorsByStoreId = async (storeId: string) => {
-//   try {
-//     if (!storeId) {
-//       return [];
-//     }
+export const getColorsByStoreId = async (storeId: string) => {
+  try {
+    if (!storeId) {
+      return [];
+    }
 
-//     const colors = await prismadb.color.findMany({
-//       where: {
-//         storeId,
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    const colors = await db.query.ColorTable.findMany({
+      where: eq(ColorTable.storeId, storeId),
+      orderBy: desc(ColorTable.createdAt),
+    });
 
-//     return colors;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return colors;
+  } catch (err) {
+    return [];
+  }
+};
 
 export const getStore = async ({
   userId,

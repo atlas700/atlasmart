@@ -2,16 +2,18 @@ import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
 import { Separator } from "@/components/ui/separator";
-import { getStoreOrdersByStatus } from "@/data/orders";
+import { getStoreOrdersByStatus } from "@/features/orders/db/orders";
 import { DataTable } from "@/components/ui/data-table";
 
 export default async function StoreOrderPage({
-  params: { storeId },
-  searchParams: { status },
+  params,
+  searchParams,
 }: {
-  params: { storeId: string };
-  searchParams: { status: string };
+  params: Promise<{ storeId: string }>;
+  searchParams: Promise<{ status: string }>;
 }) {
+  const { storeId } = await params;
+  const { status } = await searchParams;
   const orders = await getStoreOrdersByStatus({
     storeId,
     status,

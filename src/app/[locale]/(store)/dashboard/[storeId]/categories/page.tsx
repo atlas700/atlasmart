@@ -3,16 +3,17 @@ import { Plus } from "lucide-react";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
-import { getCategoriesByStoreId } from "@/data/store";
+import { getCategoriesByStoreId } from "@/features/store/db/store";
 import { Separator } from "@/components/ui/separator";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 export default async function StoreCategoriesPage({
-  params: { storeId },
+  params,
 }: {
-  params: { storeId: string };
+  params: Promise<{ storeId: string }>;
 }) {
+  const { storeId } = await params;
   const categories = await getCategoriesByStoreId(storeId);
 
   return (

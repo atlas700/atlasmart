@@ -1,47 +1,43 @@
-import prismadb from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { checkText } from "@/actions/checkText";
-import { currentUser } from "@/lib/auth";
+import { db } from "@/drizzle/db";
+import { CategoryTable, StoreTable, userRoles } from "@/drizzle/schema";
 import { CategorySchema } from "@/lib/validators/category";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq, ilike, ne } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string; id: string } }
+  { params }: { params: Promise<{ storeId: string; id: string }> }
 ) {
   try {
-    const { storeId, id } = params;
+    const { storeId, id } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!id) {
-      return new NextResponse("Category Id is required", { status: 400 });
+      return new Response("Category Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -51,115 +47,83 @@ export async function PATCH(
     try {
       validatedBody = CategorySchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return Response.json("Invalid Credentials", { status: 400 });
     }
 
     const { name } = validatedBody;
 
-    if (process.env.VERCEL_ENV === "production") {
-      //Check if name is appropiate
-      const nameIsAppropiate = await checkText({ text: name });
-
-      if (
-        nameIsAppropiate.success === "NEGATIVE" ||
-        nameIsAppropiate.success === "MIXED" ||
-        nameIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The name of your category is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
     //Check if category name exists
-    const category = await prismadb.category.findFirst({
-      where: {
-        id: {
-          not: id,
-        },
-        storeId,
-        name: {
-          equals: name,
-          mode: "insensitive",
-        },
-      },
+    const category = await db.query.CategoryTable.findFirst({
+      where: and(
+        ne(CategoryTable.id, id),
+        eq(CategoryTable.storeId, storeId),
+        ilike(CategoryTable.name, name)
+      ),
     });
 
     if (category) {
-      return new NextResponse("Name already taken!", { status: 409 });
+      return new Response("Name already taken!", { status: 409 });
     }
 
-    await prismadb.category.update({
-      where: {
-        id,
-        storeId,
-      },
-      data: {
+    await db
+      .update(CategoryTable)
+      .set({
         name,
-      },
-    });
+      })
+      .where(and(eq(CategoryTable.id, id), eq(CategoryTable.storeId, storeId)));
 
-    return NextResponse.json({ message: "Category Updated!" });
+    return new Response(JSON.stringify({ message: "Category Updated!" }));
   } catch (err) {
     console.log("[CATEGORY_UPDATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { storeId: string; id: string } }
+  { params }: { params: Promise<{ storeId: string; id: string }> }
 ) {
   try {
-    const { storeId, id } = params;
+    const { storeId, id } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!id) {
-      return new NextResponse("Category Id is required", { status: 400 });
+      return new Response("Category Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
-    await prismadb.category.delete({
-      where: {
-        id,
-        storeId,
-      },
-    });
+    await db
+      .delete(CategoryTable)
+      .where(and(eq(CategoryTable.id, id), eq(CategoryTable.storeId, storeId)));
 
-    return NextResponse.json({ message: "Category Deleted!" });
+    return new Response(JSON.stringify({ message: "Category Deleted!" }));
   } catch (err) {
     console.log("[CATEGORY_DELETE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

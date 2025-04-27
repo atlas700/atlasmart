@@ -3,16 +3,17 @@ import { Plus } from "lucide-react";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
-import { getColorsByStoreId } from "@/data/store";
+import { getColorsByStoreId } from "@/features/store/db/store";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import { buttonVariants } from "@/components/ui/button";
 
 export default async function ColorsPage({
-  params: { storeId },
+  params,
 }: {
-  params: { storeId: string };
+  params: Promise<{ storeId: string }>;
 }) {
+  const { storeId } = await params;
   const colors = await getColorsByStoreId(storeId);
 
   return (
