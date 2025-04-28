@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ReviewType } from "@/types";
+import { ReviewType } from "../../../../../../../../types";
 import ReviewItem from "./ReviewItem";
 import Spinner from "@/components/Spinner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";

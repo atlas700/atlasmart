@@ -5,7 +5,7 @@ import TooltipContainer from "@/components/TooltipContainer";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ColorTable, SizeTable, userRoles } from "@/drizzle/schema";
-import { addToCartHandler } from "@/features/cart/db/cart";
+import { addToCartHandler } from "@/features/cart/actions/cart";
 import { cn, formatPrice } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";

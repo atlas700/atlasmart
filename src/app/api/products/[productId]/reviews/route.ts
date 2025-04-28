@@ -71,7 +71,7 @@ export async function POST(
       return new Response("Product Id is required", { status: 400 });
     }
 
-    const { user } = await getCurrentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
       return new Response(

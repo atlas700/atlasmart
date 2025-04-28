@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { INFINITE_SCROLL_REVIEWS_RESULT } from "@/lib/utils";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { ReviewType } from "../../../../../../../../types";
 import ReviewItem from "./ReviewItem";
 import ReviewsSheet from "./ReviewsSheet";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { INFINITE_SCROLL_REVIEWS_RESULT } from "@/lib/utils";
 
 type Props = {
   productId: string;

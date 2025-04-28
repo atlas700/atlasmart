@@ -88,7 +88,7 @@ const ReviewItem = ({ review, productId, disabled, currentUser }: Props) => {
     <div className="space-y-3 text-sm">
       <div className="flex items-center gap-2">
         <Avatar className="w-8 h-8">
-          <AvatarImage src={review?.user?.image || "/no-profile.jpeg"} />
+          <AvatarImage src={review?.user?.imageUrl || "/no-profile.jpeg"} />
         </Avatar>
 
         <p className="font-medium">{review?.user?.name}</p>

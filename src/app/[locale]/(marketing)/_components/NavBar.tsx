@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Locale } from "../../../../../i18n";
 import SearchBar from "./SearchBar";
+import Cart from "@/components/cart/Cart";
 
 export default async function NavBar({ locale }: { locale: Locale }) {
   const translation = await getTranslation(locale);
@@ -38,7 +39,7 @@ export default async function NavBar({ locale }: { locale: Locale }) {
                   </Button>
                 )}
                 <UserButton />
-                {/* <Cart /> */}
+                <Cart />
               </div>
             ) : (
               <Button variant="outline" data-testid="nav-sign-in-btn">
