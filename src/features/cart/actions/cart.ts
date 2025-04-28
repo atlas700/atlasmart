@@ -223,13 +223,11 @@ export const deleteCartItem = async (cartItemId: string) => {
       .from(CartItemTable)
       .leftJoin(CartTable, eq(CartItemTable.cartId, CartTable.id))
       .where(
-        and(
-          eq(CartItemTable.id, cartItemId),
-          eq(CartTable.userId, user.id),
-          eq(UserTable.role, "USER") // assuming you have user role info in cart or user table
-        )
+        and(eq(CartItemTable.id, cartItemId), eq(CartTable.userId, user.id))
       )
       .execute();
+
+    console.log("[CART_ITEM_DELETE] cartItems", cartItems);
 
     if (cartItems.length === 0) {
       throw new Error(
