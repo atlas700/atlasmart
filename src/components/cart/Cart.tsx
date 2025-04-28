@@ -25,10 +25,11 @@ import { UserRole, userRoles } from "@/drizzle/schema";
 const Cart = ({
   currentUser,
 }: {
-  currentUser?: { id: string | undefined; role: UserRole | undefined };
+  currentUser: { id: string; role: UserRole };
 }) => {
-  const user = currentUser;
   const pathname = usePathname();
+
+  const user = currentUser;
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -45,8 +46,6 @@ const Cart = ({
     },
   });
 
-  console.log("cart", cart);
-
   const emptyCart =
     !isLoading &&
     !isError &&
@@ -54,7 +53,7 @@ const Cart = ({
 
   const cartTotal =
     (cart?.cartItems?.reduce(
-      (total: any, item: any) =>
+      (total, item) =>
         total + ((item.availableItem?.currentPrice || 0) * item?.quantity || 0),
       0
     ) || 0) +
@@ -119,7 +118,7 @@ const Cart = ({
             {cart?.cartItems?.length > 0 && (
               <ScrollArea>
                 <div className="space-y-5">
-                  {cart?.cartItems?.map((item: any, i: number) => (
+                  {cart?.cartItems?.map((item, i) => (
                     <CartItem key={item.id} cartItem={item} index={i} />
                   ))}
                 </div>

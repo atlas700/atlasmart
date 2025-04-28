@@ -39,7 +39,9 @@ export default async function NavBar({ locale }: { locale: Locale }) {
                   </Button>
                 )}
                 <UserButton />
-                <Cart />
+                <Suspense>
+                  <Cart currentUser={{ id: user.id, role: user.role }} />
+                </Suspense>
               </div>
             ) : (
               <Button variant="outline" data-testid="nav-sign-in-btn">

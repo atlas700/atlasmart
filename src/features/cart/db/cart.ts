@@ -15,31 +15,21 @@ import { desc, eq } from "drizzle-orm";
 export const getCartItems = async () => {
   try {
     const { user } = await getCurrentUser({ allData: true });
+    if (!user || !user.id) return null;
 
-    if (!user || !user.id) {
-      return null;
-    }
+    const role = user.role;
+    if (role !== "USER") return null;
 
-    const role = await user.role;
-
-    if (role !== "USER") {
-      return null;
-    }
-
-    // 1. Fetch the user's cart
     const carts = await db
       .select()
       .from(CartTable)
       .where(eq(CartTable.userId, user.id))
       .execute();
 
-    if (carts.length === 0) {
-      return null; // No cart found
-    }
+    if (carts.length === 0) return null;
 
     const userCart = carts[0];
 
-    // 2. Fetch cart items for this cart, ordered by createdAt descending
     const cartItems = await db
       .select()
       .from(CartItemTable)
@@ -47,16 +37,16 @@ export const getCartItems = async () => {
       .orderBy(desc(CartItemTable.createdAt))
       .execute();
 
-    // 3. For each cart item, fetch related data
+    if (cartItems.length === 0) return [];
+
     const detailedItems = await Promise.all(
       cartItems.map(async (item) => {
-        // Fetch product with category
+        // Fetch product
         const products = await db
           .select()
           .from(ProductTable)
           .where(eq(ProductTable.id, item.productId))
           .execute();
-
         const productData = products[0];
 
         // Fetch product item
@@ -68,7 +58,7 @@ export const getCartItems = async () => {
 
         const productItemData = productItems[0];
 
-        // Fetch available item with size
+        // Fetch available item
         const availableItems = await db
           .select()
           .from(AvailableItemTable)
@@ -77,12 +67,12 @@ export const getCartItems = async () => {
 
         const availableItemData = availableItems[0];
 
+        // Fetch size
         const sizes = await db
           .select()
           .from(SizeTable)
           .where(eq(SizeTable.id, availableItemData.sizeId))
           .execute();
-
         const sizeData = sizes[0];
 
         return {
@@ -102,7 +92,6 @@ export const getCartItems = async () => {
       cartItems: detailedItems,
     };
   } catch (err) {
-    console.log("[CART_ITEM_GET]", err);
     return null;
   }
 };

@@ -145,62 +145,62 @@ export const updateCartItem = async ({
       throw new Error("Unauthorized, You need to be logged in.");
     }
 
-    //Check if cart item exists
-    const cartItem = await db.query.CartItemTable.findFirst({
-      where: and(
-        eq(CartItemTable.id, cartItemId),
-        and(eq(UserTable.id, user.id), eq(UserTable.role, "USER"))
-      ),
-      columns: {
-        quantity: true,
-      },
-      with: {
-        availableItem: {
-          columns: {
-            numInStocks: true,
-          },
-        },
-      },
-    });
+    // 1. Fetch the cart item with related availableItem
+    const cartItems = await db
+      .select({
+        id: CartItemTable.id,
+        quantity: CartItemTable.quantity,
+        availableNumInStocks: AvailableItemTable.numInStocks,
+      })
+      .from(CartItemTable)
+      .leftJoin(
+        AvailableItemTable,
+        eq(CartItemTable.availableItemId, AvailableItemTable.id)
+      )
+      .where(eq(CartItemTable.id, cartItemId))
+      .execute();
 
-    if (!cartItem) {
+    if (cartItems.length === 0) {
       throw new Error("Cart item not found!");
     }
 
+    const item = cartItems[0];
+
     if (task === "add") {
-      //Check if there is an item in stocks.
-      if (cartItem.quantity >= cartItem.availableItem.numInStocks) {
+      // Check stock availability
+      if (item.quantity >= item.availableNumInStocks!) {
         throw new Error(
-          `Only ${cartItem.availableItem.numInStocks} of this item is in stocks!`
+          `Only ${item.availableNumInStocks} of this item is in stocks!`
         );
       }
 
-      //If there is allow customer to increase quality
+      // Update quantity: increment by 1
       await db
         .update(CartItemTable)
-        .set({
-          quantity: sql`${CartItemTable.quantity} + 1`,
-        })
-        .where(eq(CartItemTable.id, cartItemId));
+        .set({ quantity: sql`quantity + 1` }) // Use raw SQL for increment
+        .where(eq(CartItemTable.id, cartItemId))
+        .execute();
     } else {
-      //If quality is more than 1 then decrease by 1
-      if (cartItem.quantity > 1) {
+      // Decrease quantity or delete
+      if (item.quantity > 1) {
+        // Decrement by 1
         await db
           .update(CartItemTable)
-          .set({
-            quantity: sql`${CartItemTable.quantity} - 1`,
-          })
-          .where(eq(CartItemTable.id, cartItemId));
+          .set({ quantity: sql`quantity - 1` }) // Use raw SQL for decrement
+          .where(eq(CartItemTable.id, cartItemId))
+          .execute();
       } else {
-        //delete cart item.
-        await db.delete(CartItemTable).where(eq(CartItemTable.id, cartItemId));
+        // Delete the cart item
+        await db
+          .delete(CartItemTable)
+          .where(eq(CartItemTable.id, cartItemId))
+          .execute();
       }
     }
 
     return { message: "Cart item updated!" };
   } catch (err) {
     console.log("[CART_ITEM_PATCH]", err);
-
     throw new Error("Internal server error");
   }
 };
@@ -217,28 +217,35 @@ export const deleteCartItem = async (cartItemId: string) => {
       throw new Error("Unauthorized, You need to be logged in.");
     }
 
-    //Check if cart item exists
-    const cartItem = await db.query.CartItemTable.findFirst({
-      where: and(
-        eq(CartItemTable.id, cartItemId),
-        and(eq(UserTable.id, user.id), eq(UserTable.role, "USER"))
-      ),
-      columns: {
-        id: true,
-      },
-    });
+    // 1. Fetch the cart item with join to verify ownership
+    const cartItems = await db
+      .select({ id: CartItemTable.id })
+      .from(CartItemTable)
+      .leftJoin(CartTable, eq(CartItemTable.cartId, CartTable.id))
+      .where(
+        and(
+          eq(CartItemTable.id, cartItemId),
+          eq(CartTable.userId, user.id),
+          eq(UserTable.role, "USER") // assuming you have user role info in cart or user table
+        )
+      )
+      .execute();
 
-    if (!cartItem) {
-      throw new Error("Cart item not found!");
+    if (cartItems.length === 0) {
+      throw new Error(
+        "Cart item not found or you don't have permission to delete it"
+      );
     }
 
-    //Delete cart item
-    await db.delete(CartItemTable).where(eq(CartItemTable.id, cartItemId));
+    // 2. Delete the cart item
+    await db
+      .delete(CartItemTable)
+      .where(eq(CartItemTable.id, cartItemId))
+      .execute();
 
     return { message: "Cart item deleted!" };
   } catch (err) {
     console.log("[CART_ITEM_DELETE]", err);
-
     throw new Error("Internal server error");
   }
 };
