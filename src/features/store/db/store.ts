@@ -121,7 +121,7 @@ export const getBannersByStoreId = async (storeId: string) => {
     }
 
     const banners = await db.query.BannerTable.findMany({
-      where: eq(BannerTable.id, storeId),
+      where: eq(BannerTable.storeId, storeId),
       orderBy: desc(BannerTable.createdAt),
     });
 
@@ -182,7 +182,7 @@ export const getSizesByStoreId = async (storeId: string) => {
     }
 
     const sizes = await db.query.SizeTable.findMany({
-      where: eq(SizeTable.id, storeId),
+      where: eq(SizeTable.storeId, storeId),
       orderBy: desc(SizeTable.createdAt),
     });
 

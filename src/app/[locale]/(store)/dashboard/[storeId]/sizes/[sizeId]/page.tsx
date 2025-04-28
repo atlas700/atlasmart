@@ -1,22 +1,21 @@
-import prismadb from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
 import SizeForm from "../_components/SizeForm";
 import Container from "@/components/Container";
 import { Separator } from "@/components/ui/separator";
+import { db } from "@/drizzle/db";
+import { and, eq } from "drizzle-orm";
+import { SizeTable } from "@/drizzle/schema";
 
 export default async function SizePage({
   params,
 }: {
-  params: { storeId: string; sizeId: string };
+  params: Promise<{ storeId: string; sizeId: string }>;
 }) {
-  const { sizeId, storeId } = params;
+  const { sizeId, storeId } = await params;
 
-  const size = await prismadb.size.findUnique({
-    where: {
-      id: sizeId,
-      storeId,
-    },
+  const size = await db.query.SizeTable.findFirst({
+    where: and(eq(SizeTable.storeId, storeId), eq(SizeTable.id, sizeId)),
   });
 
   if (!size) {

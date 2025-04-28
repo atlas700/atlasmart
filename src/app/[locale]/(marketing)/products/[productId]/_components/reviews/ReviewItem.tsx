@@ -3,25 +3,27 @@
 import React from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ReviewType } from "@/types";
-import { UserRole } from "@prisma/client";
+import { ReviewType } from "../../../../../../../../types";
 import axios, { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { FaStar, FaRegStar } from "react-icons/fa6";
-import useCurrentUser from "@/hooks/use-current-user";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { userRoles } from "@/drizzle/schema";
 
 type Props = {
   review: ReviewType;
   productId: string;
   disabled: boolean;
+  currentUser?: {
+    id: string | undefined;
+    role: string | undefined;
+  };
 };
 
-const ReviewItem = ({ review, productId, disabled }: Props) => {
-  const { user } = useCurrentUser();
-
+const ReviewItem = ({ review, productId, disabled, currentUser }: Props) => {
   const queryClient = useQueryClient();
+  const user = currentUser;
 
   const { mutate: markAshelpful, isPending } = useMutation({
     mutationKey: ["mark-as-helpful", review.id],
@@ -136,7 +138,7 @@ const ReviewItem = ({ review, productId, disabled }: Props) => {
       )}
 
       {user?.id &&
-        user?.role === UserRole.USER &&
+        user?.role === userRoles[0] &&
         review?.userId !== user?.id &&
         !review?.helpful?.includes(user?.id) && (
           <Button

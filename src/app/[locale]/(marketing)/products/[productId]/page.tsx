@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/services/clerk";
 import { redirect } from "next/navigation";
 import { Locale } from "../../../../../../i18n";
 import ProductContent from "./_components/ProductContent";
+import Recommendation from "./_components/Recommendation";
+import Reviews from "./_components/reviews/Reviews";
 
 export default async function ProductPage({
   params,
@@ -28,7 +30,7 @@ export default async function ProductPage({
         <ProductContent user={user} product={product} />
       </Container>
 
-      {/* <Recommendation
+      <Recommendation
         product={{
           id: product.id,
           name: product.name,
@@ -38,7 +40,10 @@ export default async function ProductPage({
         }}
       />
 
-      <Reviews productId={productId} /> */}
+      <Reviews
+        productId={productId}
+        currentUser={{ role: user?.role, id: user?.id }}
+      />
     </div>
   );
 }

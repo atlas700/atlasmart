@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/drizzle/db";
 import {
   AvailableItemTable,
@@ -8,7 +10,8 @@ import {
   SizeTable,
 } from "@/drizzle/schema";
 import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
-import { and, desc, eq, exists, gt, sql } from "drizzle-orm";
+import { and, desc, eq, exists, gt, ne, or, sql } from "drizzle-orm";
+import { RecommendedType } from "../../../../types";
 
 export const getHomePageProducts = async () => {
   try {
@@ -185,5 +188,127 @@ export const getProductById = async (productId: string) => {
     return product;
   } catch (err) {
     return null;
+  }
+};
+
+export const getRecommendedProducts = async (product: RecommendedType) => {
+  try {
+    if (!product) return [];
+
+    const recommendedProducts = await db
+      .select({
+        product: ProductTable,
+        category: CategoryTable,
+        productItems: {
+          ...ProductItemTable,
+          availableItems: {
+            ...AvailableItemTable,
+            size: SizeTable,
+          },
+          reviews: ReviewTable,
+        },
+      })
+      .from(ProductTable)
+      .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
+      .leftJoin(
+        ProductItemTable,
+        eq(ProductTable.id, ProductItemTable.productId)
+      )
+      .leftJoin(
+        AvailableItemTable,
+        eq(ProductItemTable.id, AvailableItemTable.productItemId)
+      )
+      .leftJoin(SizeTable, eq(AvailableItemTable.sizeId, SizeTable.id))
+      .leftJoin(ReviewTable, eq(ProductTable.id, ReviewTable.productId))
+      .where(
+        and(
+          ne(ProductTable.id, product.id),
+          eq(ProductTable.status, "APPROVED"),
+          or(eq(CategoryTable.name, product.category?.name ?? "")),
+          eq(CategoryTable.name, product.category?.name ?? ""),
+          eq(ProductTable.name, product.name),
+          eq(ProductTable.name, product.name)
+        )
+      )
+      .orderBy(desc(ProductTable.createdAt))
+      .limit(10);
+
+    // const recommendedProducts = await prismadb.product.findMany({
+    //   where: {
+    //     id: {
+    //       not: product.id,
+    //     },
+    //     status: ProductStatus.APPROVED,
+    //     OR: [
+    //       {
+    //         category: {
+    //           OR: [
+    //             {
+    //               name: {
+    //                 contains: product.category?.name,
+    //               },
+    //             },
+    //             {
+    //               name: {
+    //                 equals: product.category?.name,
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       },
+    //       {
+    //         OR: [
+    //           {
+    //             name: {
+    //               contains: product.name,
+    //             },
+    //           },
+    //           {
+    //             name: {
+    //               equals: product.name,
+    //             },
+    //           },
+    //         ],
+    //       },
+    //     ],
+    //   },
+    //   include: {
+    //     category: true,
+    //     productItems: {
+    //       where: {
+    //         availableItems: {
+    //           some: {
+    //             numInStocks: {
+    //               gt: 0,
+    //             },
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         availableItems: {
+    //           include: {
+    //             size: true,
+    //           },
+    //           orderBy: {
+    //             createdAt: "desc",
+    //           },
+    //         },
+    //       },
+    //     },
+    //     reviews: {
+    //       select: {
+    //         value: true,
+    //       },
+    //     },
+    //   },
+    //   take: 10,
+    //   orderBy: {
+    //     createdAt: "desc",
+    //   },
+    // });
+
+    return recommendedProducts;
+  } catch (err) {
+    return [];
   }
 };

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Color } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { SketchPicker } from "react-color";
@@ -21,9 +20,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { ColorTable } from "@/drizzle/schema";
 
 type Props = {
-  data?: Color;
+  data?: typeof ColorTable.$inferSelect;
 };
 
 const ColorForm = ({ data }: Props) => {

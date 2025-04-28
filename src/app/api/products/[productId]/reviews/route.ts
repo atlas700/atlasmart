@@ -1,13 +1,13 @@
 import { z } from "zod";
-import prismadb from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
 import { ReviewSchema } from "@/lib/validators/review";
+import { db } from "@/drizzle/db";
+import { desc, eq } from "drizzle-orm";
+import { ProductTable, ReviewTable, userRoles } from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const url = new URL(request.url);
@@ -22,73 +22,67 @@ export async function GET(
         page: url.searchParams.get("page"),
       });
 
-    const { productId } = params;
+    const { productId } = await params;
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
     //check if product exists
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
     });
 
     if (!product) {
-      return new NextResponse("Product not found!", { status: 404 });
+      return new Response("Product not found!", { status: 404 });
     }
 
-    const reviews = await prismadb.review.findMany({
-      where: {
-        productId,
-      },
-      include: {
+    const reviews = await db.query.ReviewTable.findMany({
+      where: eq(ProductTable.id, productId),
+      with: {
         user: {
-          select: {
+          columns: {
             name: true,
-            image: true,
+            imageUrl: true,
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit),
+      orderBy: desc(ReviewTable.createdAt),
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
     });
 
-    return NextResponse.json(reviews);
+    return new Response(JSON.stringify(reviews));
   } catch (err) {
     console.log("GET_REVIEWS", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function POST(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser();
 
     if (!user) {
-      return new NextResponse(
+      return new Response(
         "Unauthorized, You need to be logged in to add a review",
         { status: 401 }
       );
     }
 
     //Check if user role is USER
-    if (user.role !== UserRole.USER) {
-      return new NextResponse("Unauthorized, Only users can add review", {
+    if (user.role !== userRoles[0]) {
+      return new Response("Unauthorized, Only users can add review", {
         status: 401,
       });
     }
@@ -100,37 +94,35 @@ export async function POST(
     try {
       validatedBody = ReviewSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { value, reason, comment } = validatedBody;
 
     //check if product exists
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
     });
 
     if (!product) {
-      return new NextResponse("Product not found!", { status: 404 });
+      return new Response("Product not found!", { status: 404 });
     }
 
-    await prismadb.review.create({
-      data: {
-        userId: user.id,
-        productId,
-        storeId: product.storeId,
-        value,
-        comment,
-        reason,
-      },
+    await db.insert(ReviewTable).values({
+      userId: user.id,
+      productId,
+      storeId: product.storeId,
+      value,
+      comment,
+      reason,
     });
 
-    return NextResponse.json({ maeesge: "Review Created!" });
+    return new Response(JSON.stringify({ message: "Review Created!" }));
   } catch (err) {
     console.log("CREATE_REVIEW", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

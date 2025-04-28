@@ -24,9 +24,13 @@ import { BannerTable } from "@/drizzle/schema";
 
 type Props = {
   data?: typeof BannerTable.$inferSelect;
+  currentUser?: {
+    id: string | undefined;
+    name: string | undefined;
+  };
 };
 
-const BannerForm = ({ data }: Props) => {
+const BannerForm = ({ data, currentUser }: Props) => {
   const params = useParams();
 
   const router = useRouter();
@@ -124,6 +128,7 @@ const BannerForm = ({ data }: Props) => {
                       onChange={field.onChange}
                       disabled={isPending}
                       testId="banner-upload"
+                      currentUser={currentUser}
                     />
                   </FormControl>
 

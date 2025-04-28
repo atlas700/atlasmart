@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { toast } from "sonner";
-import { useDropzone } from "react-dropzone";
-import { Trash2, ImagePlus } from "lucide-react";
-import useCurrentUser from "@/hooks/use-current-user";
-import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import { generateReactHelpers } from "@uploadthing/react";
+import { ImagePlus, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
 
 // Generate the React helpers for UploadThing
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();

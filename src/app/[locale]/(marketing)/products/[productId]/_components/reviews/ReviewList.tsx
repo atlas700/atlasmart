@@ -2,7 +2,7 @@
 
 import React from "react";
 import axios from "axios";
-import { ReviewType } from "@/types";
+import { ReviewType } from "../../../../../../../../types";
 import ReviewItem from "./ReviewItem";
 import ReviewsSheet from "./ReviewsSheet";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -13,6 +13,10 @@ type Props = {
   productId: string;
   initialData: ReviewType[];
   reviewCount: number;
+  currentUser?: {
+    id: string | undefined;
+    role: string | undefined;
+  };
 };
 
 const ReviewList = ({ productId, initialData, reviewCount }: Props) => {

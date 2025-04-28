@@ -1,22 +1,21 @@
-import prismadb from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import BannerForm from "../_components/BannerForm";
 import { Separator } from "@/components/ui/separator";
+import { db } from "@/drizzle/db";
+import { and, eq } from "drizzle-orm";
+import { BannerTable } from "@/drizzle/schema";
 
 export default async function BannerPage({
   params,
 }: {
-  params: { storeId: string; bannerId: string };
+  params: Promise<{ storeId: string; bannerId: string }>;
 }) {
-  const { bannerId, storeId } = params;
+  const { bannerId, storeId } = await params;
 
-  const banner = await prismadb.banner.findUnique({
-    where: {
-      id: bannerId,
-      storeId,
-    },
+  const banner = await db.query.BannerTable.findFirst({
+    where: and(eq(BannerTable.id, bannerId), eq(BannerTable.storeId, storeId)),
   });
 
   if (!banner) {

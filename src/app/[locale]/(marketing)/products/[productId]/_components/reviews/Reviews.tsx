@@ -1,26 +1,27 @@
 "use client";
 
-import React from "react";
-import ReviewList from "./ReviewList";
-import ReviewForm from "./ReviewForm";
-import { UserRole } from "@prisma/client";
-import Spinner from "@/components/Spinner";
 import Container from "@/components/Container";
-import useCurrentUser from "@/hooks/use-current-user";
-import { useQuery } from "@tanstack/react-query";
+import Spinner from "@/components/Spinner";
 import {
   checkIfReviewed,
   getReviewCount,
   getReviewsForProduct,
-} from "@/data/review";
+} from "@/features/reviews/db/reviews";
+import { UserRole, userRoles } from "@/drizzle/schema";
+import { useQuery } from "@tanstack/react-query";
+import ReviewForm from "./ReviewForm";
+import ReviewList from "./ReviewList";
 
 type Props = {
   productId: string;
+  currentUser?: {
+    id: string | undefined;
+    role: UserRole | undefined;
+  };
 };
 
-const Reviews = ({ productId }: Props) => {
-  const { user } = useCurrentUser();
-
+const Reviews = ({ productId, currentUser }: Props) => {
+  const user = currentUser;
   const { data } = useQuery({
     queryKey: ["get-reviews-details", productId],
     queryFn: async () => {
@@ -37,7 +38,7 @@ const Reviews = ({ productId }: Props) => {
   });
 
   const showForm =
-    user && user.role === UserRole.USER && (!data?.hasReviewed || false);
+    user && user.role === userRoles[0] && (!data?.hasReviewed || false);
 
   const {
     data: initialReviews,
@@ -77,6 +78,7 @@ const Reviews = ({ productId }: Props) => {
                   productId={productId}
                   initialData={initialReviews}
                   reviewCount={data?.reviewCount || 0}
+                  currentUser={user}
                 />
               )}
           </div>

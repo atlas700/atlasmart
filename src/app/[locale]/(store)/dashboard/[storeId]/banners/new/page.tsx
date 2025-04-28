@@ -2,8 +2,12 @@ import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import BannerForm from "../_components/BannerForm";
 import { Separator } from "@/components/ui/separator";
+import { getCurrentUser } from "@/services/clerk";
+import { redirect } from "next/navigation";
 
-export default function NewBanner() {
+export default async function NewBanner() {
+  const { user } = await getCurrentUser();
+
   return (
     <Container>
       <Heading
@@ -13,7 +17,7 @@ export default function NewBanner() {
 
       <Separator className="my-4" />
 
-      <BannerForm />
+      <BannerForm currentUser={{ id: user?.id, name: user?.name }} />
     </Container>
   );
 }

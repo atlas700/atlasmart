@@ -28,7 +28,20 @@ export const formatPrice = (
 ) => {
   const { currency = "USD", notation = "compact" } = options;
 
-  const numericPrice = typeof price === "string" ? parseFloat(price) : price;
+  // Convert string to number, handle invalid strings
+  const numericPrice =
+    typeof price === "string"
+      ? (() => {
+          const parsed = parseFloat(price);
+          return isNaN(parsed) ? 0 : parsed; // fallback to 0 or handle differently
+        })()
+      : price;
+
+  // Optional: validate currency
+  const validCurrencies = ["USD", "EUR", "GBP", "BDT"] as const;
+  if (!validCurrencies.includes(currency)) {
+    throw new Error(`Unsupported currency: ${currency}`);
+  }
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",

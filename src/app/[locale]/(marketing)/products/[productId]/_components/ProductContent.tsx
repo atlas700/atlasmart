@@ -112,13 +112,13 @@ const ProductContent = ({ product, user }: Props) => {
             <div className="flex items-center gap-2 font-semibold">
               <span>
                 {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
-                  currency: "GBP",
+                  currency: "USD",
                 })}
               </span>
 
               <span className="line-through text-gray-500">
                 {formatPrice(currentSizes?.[priceIndex]?.originalPrice || 0, {
-                  currency: "GBP",
+                  currency: "USD",
                 })}
               </span>
 
@@ -135,7 +135,7 @@ const ProductContent = ({ product, user }: Props) => {
           ) : (
             <div className="font-semibold">
               {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
-                currency: "GBP",
+                currency: "USD",
               })}
             </div>
           )}

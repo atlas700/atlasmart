@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import Spinner from "@/components/Spinner";
-import { RecommendedType } from "../../../../../../../types";
 import Container from "@/components/Container";
+import Spinner from "@/components/Spinner";
+import { getRecommendedProducts } from "@/features/products/db/products";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { getRecommendedProducts } from "@/data/product";
+import { useRef, useState } from "react";
+import { RecommendedType } from "../../../../../../../types";
 import Product from "../../../_components/Product";
 
 type Props = {
@@ -96,7 +96,7 @@ const Recommendation = ({ product }: Props) => {
             !isError &&
             Array.isArray(products) &&
             products.map((product, i) => (
-              <div key={product.id} className="min-w-[350px]">
+              <div key={product.product.id} className="min-w-[350px]">
                 <Product product={product} />
               </div>
             ))}

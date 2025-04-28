@@ -1,26 +1,25 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { db } from "@/drizzle/db";
+import { ColorTable, ProductTable } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export async function POST(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
     //check if product exists
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
     });
 
     if (!product) {
-      return new NextResponse("Product not found!", { status: 404 });
+      return new Response("Product not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -29,18 +28,18 @@ export async function POST(
 
     const colors = await Promise.all(
       colorIds.map(async (id: string) => {
-        const color = await prismadb.color.findUnique({
-          where: { id },
+        const color = await db.query.ColorTable.findFirst({
+          where: eq(ColorTable.id, id),
         });
 
         return color;
       })
     );
 
-    return NextResponse.json(colors);
+    return new Response(JSON.stringify(colors));
   } catch (err) {
     console.log("GET_COLORS_SOME_PRODUCT", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

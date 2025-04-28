@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Category } from "@prisma/client";
 import axios, { AxiosError } from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,9 +19,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { CategoryTable } from "@/drizzle/schema";
 
 type Props = {
-  data?: Category;
+  data?: typeof CategoryTable.$inferSelect;
 };
 
 const CategoryForm = ({ data }: Props) => {

@@ -1,47 +1,43 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { db } from "@/drizzle/db";
+import { SizeTable, StoreTable, userRoles } from "@/drizzle/schema";
 import { SizeSchema } from "@/lib/validators/size";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
-import { checkText } from "@/actions/checkText";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq, ilike, ne } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string; sizeId: string } }
+  { params }: { params: Promise<{ storeId: string; sizeId: string }> }
 ) {
   try {
-    const { storeId, sizeId } = params;
+    const { storeId, sizeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!sizeId) {
-      return new NextResponse("Size Id is required", { status: 400 });
+      return new Response("Size Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -51,131 +47,86 @@ export async function PATCH(
     try {
       validatedBody = SizeSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { name, value } = validatedBody;
 
-    if (process.env.VERCEL_ENV === "production") {
-      //Check if name and value are appropiate
-      const nameIsAppropiate = await checkText({ text: name });
-
-      if (
-        nameIsAppropiate.success === "NEGATIVE" ||
-        nameIsAppropiate.success === "MIXED" ||
-        nameIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The name of your size is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-
-      const valueIsAppropiate = await checkText({ text: value });
-
-      if (
-        valueIsAppropiate.success === "NEGATIVE" ||
-        valueIsAppropiate.success === "MIXED" ||
-        valueIsAppropiate.error
-      ) {
-        return new NextResponse(
-          "The value of your size is inappropiate! Change it.",
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
     //Check if category name exists
-    const size = await prismadb.size.findFirst({
-      where: {
-        id: {
-          not: sizeId,
-        },
-        storeId,
-        name: {
-          equals: name,
-          mode: "insensitive",
-        },
-      },
+    const size = await db.query.SizeTable.findFirst({
+      where: and(
+        ne(SizeTable.id, sizeId),
+        eq(StoreTable.id, storeId),
+        ilike(SizeTable.name, name)
+      ),
     });
 
     if (size) {
-      return new NextResponse("Name already taken!", { status: 409 });
+      return new Response("Name already taken!", { status: 409 });
     }
 
-    await prismadb.size.update({
-      where: {
-        id: sizeId,
-        storeId,
-      },
-      data: {
+    await db
+      .update(SizeTable)
+      .set({
         name,
         value,
-      },
-    });
+      })
+      .where(and(eq(SizeTable.id, sizeId), eq(SizeTable.storeId, storeId)));
 
-    return NextResponse.json({ messsage: "Size Updated!" });
+    return new Response(JSON.stringify({ messsage: "Size Updated!" }));
   } catch (err) {
     console.log("[SIZE_UPDATE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { storeId: string; sizeId: string } }
+  { params }: { params: Promise<{ storeId: string; sizeId: string }> }
 ) {
   try {
-    const { storeId, sizeId } = params;
+    const { storeId, sizeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     if (!sizeId) {
-      return new NextResponse("Size Id is required", { status: 400 });
+      return new Response("Size Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
-    await prismadb.size.delete({
-      where: {
-        id: sizeId,
-        storeId,
-      },
-    });
+    await db
+      .delete(SizeTable)
+      .where(and(eq(SizeTable.id, sizeId), eq(SizeTable.storeId, storeId)));
 
-    return NextResponse.json({ message: "Size Deleted!" });
+    return new Response(JSON.stringify({ message: "Size Deleted!" }));
   } catch (err) {
     console.log("[SIZE_DELETE]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
