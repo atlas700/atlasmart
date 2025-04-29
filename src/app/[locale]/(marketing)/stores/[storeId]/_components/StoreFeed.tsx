@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef } from "react";
 import Empty from "@/components/Empty";
-import { HomeProductType } from "@/types";
+import { HomeProductType } from "../../../../../../../types";
 import Spinner from "@/components/Spinner";
 import ProductSkeleton from "@/components/ProductSkeleton";
-import Product from "@/app/(marketing)/_components/Product";
+import Product from "../../../_components/Product";
 import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
 import useUnlimitedScrolling from "@/hooks/use-unlimited-scrolling";
 
@@ -67,6 +67,8 @@ const StoreFeed = ({ storeId, searchValue, initialData }: Props) => {
       />
     );
   }
+
+  console.log(products);
 
   return (
     <>

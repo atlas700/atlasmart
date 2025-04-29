@@ -1,10 +1,17 @@
+import { db } from "@/drizzle/db";
+import {
+  AvailableItemTable,
+  CategoryTable,
+  ProductItemTable,
+  ProductTable,
+  StoreTable,
+} from "@/drizzle/schema";
+import { and, desc, eq, exists, gt, ilike, or } from "drizzle-orm";
 import { z } from "zod";
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
     const url = new URL(request.url);
@@ -21,146 +28,174 @@ export async function GET(
         q: url.searchParams.get("q"),
       });
 
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //check if store exists
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-      },
-      select: {
+    const store = await db.query.StoreTable.findFirst({
+      where: eq(StoreTable.id, storeId),
+      columns: {
         id: true,
       },
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     let products = [];
 
     if (q && q.trim() !== "") {
-      products = await prismadb.product.findMany({
-        where: {
-          storeId,
-          status: "APPROVED",
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { name: { equals: q, mode: "insensitive" } },
-            {
-              category: {
-                name: { contains: q, mode: "insensitive" },
-              },
-            },
-            {
-              category: {
-                name: { equals: q, mode: "insensitive" },
-              },
-            },
-          ],
-          productItems: {
-            some: {
-              availableItems: {
-                some: {
-                  numInStocks: {
-                    gt: 0,
-                  },
-                },
-              },
-            },
-          },
-        },
-        include: {
+      products = await db.query.ProductTable.findMany({
+        where: and(
+          eq(ProductTable.storeId, storeId),
+          eq(ProductTable.status, "APPROVED"),
+          or(
+            ilike(ProductTable.name, `%${q}%`),
+            ilike(ProductTable.name, q),
+            exists(
+              db
+                .select()
+                .from(CategoryTable)
+                .where(
+                  and(
+                    eq(CategoryTable.id, ProductTable.categoryId),
+                    or(
+                      ilike(CategoryTable.name, `%${q}%`),
+                      ilike(CategoryTable.name, q)
+                    )
+                  )
+                )
+            )
+          ),
+          exists(
+            db
+              .select()
+              .from(ProductItemTable)
+              .where(
+                and(
+                  eq(ProductItemTable.productId, ProductTable.id),
+                  exists(
+                    db
+                      .select()
+                      .from(AvailableItemTable)
+                      .where(
+                        and(
+                          eq(
+                            AvailableItemTable.productItemId,
+                            ProductItemTable.id
+                          ),
+                          gt(AvailableItemTable.numInStocks, 0)
+                        )
+                      )
+                  )
+                )
+              )
+          )
+        ),
+        with: {
           category: true,
           productItems: {
-            where: {
+            where: exists(
+              db
+                .select()
+                .from(AvailableItemTable)
+                .where(
+                  and(
+                    eq(AvailableItemTable.productItemId, ProductItemTable.id),
+                    gt(AvailableItemTable.numInStocks, 0)
+                  )
+                )
+            ),
+            with: {
               availableItems: {
-                some: {
-                  numInStocks: {
-                    gt: 0,
-                  },
-                },
-              },
-            },
-            include: {
-              availableItems: {
-                include: {
+                with: {
                   size: true,
                 },
               },
             },
           },
           reviews: {
-            select: {
+            columns: {
               value: true,
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: parseInt(limit),
-        skip: (parseInt(page) - 1) * parseInt(limit),
+        orderBy: desc(ProductTable.createdAt),
+        limit: parseInt(limit),
+        offset: (parseInt(page) - 1) * parseInt(limit),
       });
     } else {
-      products = await prismadb.product.findMany({
-        where: {
-          storeId,
-          status: "APPROVED",
-          productItems: {
-            some: {
-              availableItems: {
-                some: {
-                  numInStocks: {
-                    gt: 0,
-                  },
-                },
-              },
-            },
-          },
-        },
-        include: {
+      products = await db.query.ProductTable.findMany({
+        where: and(
+          eq(ProductTable.storeId, storeId),
+          eq(ProductTable.status, "APPROVED"),
+          exists(
+            db
+              .select()
+              .from(ProductItemTable)
+              .where(
+                and(
+                  eq(ProductItemTable.productId, ProductTable.id),
+                  exists(
+                    db
+                      .select()
+                      .from(AvailableItemTable)
+                      .where(
+                        and(
+                          eq(
+                            AvailableItemTable.productItemId,
+                            ProductItemTable.id
+                          ),
+                          gt(AvailableItemTable.numInStocks, 0)
+                        )
+                      )
+                  )
+                )
+              )
+          )
+        ),
+        with: {
           category: true,
           productItems: {
-            where: {
+            where: exists(
+              db
+                .select()
+                .from(AvailableItemTable)
+                .where(
+                  and(
+                    eq(AvailableItemTable.productItemId, ProductItemTable.id),
+                    gt(AvailableItemTable.numInStocks, 0)
+                  )
+                )
+            ),
+            with: {
               availableItems: {
-                some: {
-                  numInStocks: {
-                    gt: 0,
-                  },
-                },
-              },
-            },
-            include: {
-              availableItems: {
-                include: {
+                with: {
                   size: true,
                 },
               },
             },
           },
           reviews: {
-            select: {
+            columns: {
               value: true,
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: parseInt(limit),
-        skip: (parseInt(page) - 1) * parseInt(limit),
+        orderBy: desc(ProductTable.createdAt),
+        limit: parseInt(limit),
+        offset: (parseInt(page) - 1) * parseInt(limit),
       });
     }
 
-    return NextResponse.json(products);
+    return new Response(JSON.stringify(products));
   } catch (err) {
     console.log("GET_STORE_PRODUCTS", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

@@ -6,17 +6,21 @@ import StoreFeed from "./_components/StoreFeed";
 import { Separator } from "@/components/ui/separator";
 import ProductFilters from "./_components/ProductFilters";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { getProductStore, getStoreProducts } from "@/data/store-products";
+import {
+  getProductStore,
+  getStoreProducts,
+} from "@/features/store/db/store-products";
 
 export default async function StorePage({
-  params: { storeId },
-  searchParams: { search },
+  params,
+  searchParams,
 }: {
-  params: { storeId: string };
-  searchParams: {
-    search: string;
-  };
+  params: Promise<{ storeId: string }>;
+  searchParams: Promise<{ search: string }>;
 }) {
+  const { storeId } = await params;
+  const { search } = await searchParams;
+
   const store = await getProductStore(storeId);
 
   if (!store) {
@@ -32,10 +36,10 @@ export default async function StorePage({
   return (
     <div className="w-full space-y-10">
       <div className="relative w-full h-40 md:h-[50vh] bg-white overflow-hidden border-b shadow-sm">
-        {store?.Banners?.[0]?.image! ? (
+        {store?.banners?.[0]?.image! ? (
           <Image
             className="object-cover"
-            src={store.Banners[0].image}
+            src={store.banners[0].image}
             fill
             alt="store-banner"
           />
