@@ -11,7 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { ProductDetailType, ProductItemType } from "../../../../../../../types";
 import ProductSlider from "./ProductSlider";
@@ -110,17 +110,21 @@ const ProductContent = ({ product, user }: Props) => {
         <div className="text-lg">
           {curProductItem?.discount ? (
             <div className="flex items-center gap-2 font-semibold">
-              <span>
-                {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
-                  currency: "USD",
-                })}
-              </span>
+              <Suspense>
+                <span>
+                  {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
+                    currency: "USD",
+                  })}
+                </span>
+              </Suspense>
 
-              <span className="line-through text-gray-500">
-                {formatPrice(currentSizes?.[priceIndex]?.originalPrice || 0, {
-                  currency: "USD",
-                })}
-              </span>
+              <Suspense>
+                <span className="line-through text-gray-500">
+                  {formatPrice(currentSizes?.[priceIndex]?.originalPrice || 0, {
+                    currency: "USD",
+                  })}
+                </span>
+              </Suspense>
 
               <span
                 className={cn(
@@ -133,11 +137,13 @@ const ProductContent = ({ product, user }: Props) => {
               </span>
             </div>
           ) : (
-            <div className="font-semibold">
-              {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
-                currency: "USD",
-              })}
-            </div>
+            <Suspense>
+              <div className="font-semibold">
+                {formatPrice(currentSizes?.[priceIndex]?.currentPrice || 0, {
+                  currency: "USD",
+                })}
+              </div>
+            </Suspense>
           )}
         </div>
 

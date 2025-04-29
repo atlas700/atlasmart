@@ -26,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-300">
         <p className="text-sm text-violet-500">{`${label} : ${formatPrice(
           payload[0].value,
-          { currency: "GBP" }
+          { currency: "USD" }
         )}`}</p>
       </div>
     );

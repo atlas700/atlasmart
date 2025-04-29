@@ -52,7 +52,7 @@ export const columns: ColumnDef<StoreOrderCol>[] = [
       <div className="font-medium">
         {formatPrice(
           row.original.quantity * row.original.availableItem.currentPrice,
-          { currency: "GBP" }
+          { currency: "USD" }
         )}
       </div>
     ),

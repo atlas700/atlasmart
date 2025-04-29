@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import ProductImg from "./ProductImg";
 import { HomeProductType } from "../../../../../types";
 import { useRouter } from "next/navigation";
@@ -56,25 +56,29 @@ const Product = ({ product }: Props) => {
         <div className="text-sm my-2">
           {product.productItems?.[0]?.discount ? (
             <div className="flex items-center gap-2 font-semibold">
-              <span>
-                {formatPrice(
-                  product.productItems?.[0]?.availableItems?.[0]
-                    ?.currentPrice || 0,
-                  {
-                    currency: "GBP",
-                  }
-                )}
-              </span>
+              <Suspense>
+                <span>
+                  {formatPrice(
+                    product.productItems?.[0]?.availableItems?.[0]
+                      ?.currentPrice || 0,
+                    {
+                      currency: "USD",
+                    }
+                  )}
+                </span>
+              </Suspense>
 
-              <span className="line-through text-gray-500">
-                {formatPrice(
-                  product.productItems?.[0]?.availableItems?.[0]
-                    ?.originalPrice || 0,
-                  {
-                    currency: "GBP",
-                  }
-                )}
-              </span>
+              <Suspense>
+                <span className="line-through text-gray-500">
+                  {formatPrice(
+                    product.productItems?.[0]?.availableItems?.[0]
+                      ?.originalPrice || 0,
+                    {
+                      currency: "USD",
+                    }
+                  )}
+                </span>
+              </Suspense>
 
               <span
                 className={cn(
@@ -87,15 +91,17 @@ const Product = ({ product }: Props) => {
               </span>
             </div>
           ) : (
-            <div className="font-semibold">
-              {formatPrice(
-                product.productItems?.[0]?.availableItems?.[0]?.currentPrice ||
-                  0,
-                {
-                  currency: "GBP",
-                }
-              )}
-            </div>
+            <Suspense>
+              <div className="font-semibold" suppressHydrationWarning>
+                {formatPrice(
+                  product.productItems?.[0]?.availableItems?.[0]
+                    ?.currentPrice || 0,
+                  {
+                    currency: "USD",
+                  }
+                )}
+              </div>
+            </Suspense>
           )}
         </div>
       </div>

@@ -117,7 +117,7 @@ const CartItem = ({ cartItem, isCheckout, index }: Props) => {
 
         <div className="font-semibold">
           {formatPrice(cartItem.availableItem?.currentPrice || 0, {
-            currency: "GBP",
+            currency: "USD",
           })}
         </div>
       </div>

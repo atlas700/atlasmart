@@ -431,20 +431,10 @@ export const generatePriceRanges = ({
     ranges.push({
       value: [minPrice, minPrice + step],
       label: `Up to ${formatPrice(minPrice + step, {
-        currency: "GBP",
+        currency: "USD",
       })}`,
     });
   }
 
   return ranges;
-};
-
-export const containBadWords = (text: string) => {
-  let hasBadWords: boolean = false;
-
-  const filter = new Filter();
-
-  hasBadWords = filter.isProfane(text.toLowerCase());
-
-  return hasBadWords;
 };

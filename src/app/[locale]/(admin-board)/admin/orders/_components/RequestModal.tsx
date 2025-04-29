@@ -125,7 +125,7 @@ const RequestModal = ({ open, onOpenChange, orderId }: Props) => {
                         {formatPrice(
                           item.orderitem.availableItem.currentPrice,
                           {
-                            currency: "GBP",
+                            currency: "USD",
                           }
                         )}
                       </p>

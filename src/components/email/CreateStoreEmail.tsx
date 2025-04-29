@@ -53,17 +53,17 @@ export const EmailTemplate = ({
     <Html>
       <Head />
 
-      <Preview>LocalMart</Preview>
+      <Preview>AtlasMart</Preview>
 
       <Body style={main}>
         <Container style={container}>
-          <Text style={title}>🛍 LocalMart</Text>
+          <Text style={title}>🛍 AtlasMart</Text>
 
           <Text style={paragraph}>Dear {ownerName},</Text>
 
           <Text style={paragraph}>
             Congratulations! Your store has been successfully created on
-            LocalMart. You are now ready to start selling your products to
+            AtlasMart. You are now ready to start selling your products to
             customers worldwide.
           </Text>
 
@@ -94,7 +94,7 @@ export const EmailTemplate = ({
           <Text style={paragraph}>
             Best regards,
             <br />
-            The LocalMart team
+            The AtlasMart team
           </Text>
         </Container>
       </Body>

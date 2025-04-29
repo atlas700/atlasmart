@@ -15,7 +15,7 @@ export const Header = ({ label }: Props) => {
   return (
     <div className="w-full flex flex-col items-center justify-center gap-4">
       <h1 className={cn("text-3xl font-semibold", font.className)}>
-        🛍 LocalMart
+        🛍 AtlasMart
       </h1>
 
       <p className="text-sm text-muted-foreground">{label}</p>

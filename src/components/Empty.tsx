@@ -15,7 +15,7 @@ const Empty = ({ message, testId }: Props) => {
         <div className="flex items-center gap-2">
           <div className="text-7xl">🛍</div>
 
-          <div className="text-4xl font-medium">LocalMart</div>
+          <div className="text-4xl font-medium">AtlasMart</div>
         </div>
 
         <p className="text-gray-500 text-sm">{message}</p>

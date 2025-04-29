@@ -55,11 +55,11 @@ export const EmailTemplate = ({
     <Html>
       <Head />
 
-      <Preview>LocalMart</Preview>
+      <Preview>AtlasMart</Preview>
 
       <Body style={main}>
         <Container style={container}>
-          <Text style={title}>🛍 LocalMart</Text>
+          <Text style={title}>🛍 AtlasMart</Text>
 
           <Text style={paragraph}>Dear {storeName},</Text>
 
@@ -100,7 +100,7 @@ export const EmailTemplate = ({
           <Text style={paragraph}>
             Best regards,
             <br />
-            The LocalMart team
+            The AtlasMart team
           </Text>
         </Container>
       </Body>

@@ -54,17 +54,17 @@ export const EmailTemplate = ({
     <Html>
       <Head />
 
-      <Preview>LocalMart</Preview>
+      <Preview>AtlasMart</Preview>
 
       <Body style={main}>
         <Container style={container}>
-          <Text style={title}>🛍 LocalMart</Text>
+          <Text style={title}>🛍 AtlasMart</Text>
 
           <Text style={paragraph}>Dear {username},</Text>
 
           <Text style={paragraph}>
             We are writing to confirm that your new product has been
-            successfully created on your LocalMart store {storeName}. Below are
+            successfully created on your AtlasMart store {storeName}. Below are
             the details of the product you have added:
           </Text>
 
@@ -87,7 +87,7 @@ export const EmailTemplate = ({
           <Text style={paragraph}>
             Best regards,
             <br />
-            The LocalMart team
+            The AtlasMart team
           </Text>
         </Container>
       </Body>

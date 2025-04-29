@@ -166,7 +166,7 @@ export async function PATCH(
         orderDate: `${format(newOrder?.createdAt || "", "MMMM do, yyyy")}`,
         orderStatus: getOrderStatusText(newOrder?.status as any) || "",
         address: newOrder?.address || "",
-        totalAmount: `${formatPrice(totalAmount, { currency: "GBP" })}`,
+        totalAmount: `${formatPrice(totalAmount, { currency: "USD" })}`,
       });
     }
 

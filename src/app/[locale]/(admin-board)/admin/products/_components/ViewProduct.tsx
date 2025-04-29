@@ -121,7 +121,7 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
                         currentProductItem?.availableItems?.[priceIndex]
                           ?.currentPrice || 0,
                         {
-                          currency: "GBP",
+                          currency: "USD",
                         }
                       )}
                     </span>
@@ -131,7 +131,7 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
                         currentProductItem?.availableItems?.[priceIndex]
                           ?.originalPrice || 0,
                         {
-                          currency: "GBP",
+                          currency: "USD",
                         }
                       )}
                     </span>
@@ -154,7 +154,7 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
                       currentProductItem?.availableItems?.[priceIndex]
                         ?.currentPrice || 0,
                       {
-                        currency: "GBP",
+                        currency: "USD",
                       }
                     )}
                   </div>

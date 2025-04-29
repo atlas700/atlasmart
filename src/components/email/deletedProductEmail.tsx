@@ -45,17 +45,17 @@ export const EmailTemplate = ({
     <Html>
       <Head />
 
-      <Preview>LocalMart</Preview>
+      <Preview>AtlasMart</Preview>
 
       <Body style={main}>
         <Container style={container}>
-          <Text style={title}>🛍 LocalMart</Text>
+          <Text style={title}>🛍 AtlasMart</Text>
 
           <Text style={paragraph}>Dear {username},</Text>
 
           <Text style={paragraph}>
             We are writing to confirm that your new product {productName} has
-            been successfully deleted from your LocalMart store {storeName}.
+            been successfully deleted from your AtlasMart store {storeName}.
           </Text>
 
           <Text style={paragraph}>
@@ -70,7 +70,7 @@ export const EmailTemplate = ({
           <Text style={paragraph}>
             Best regards,
             <br />
-            The LocalMart team
+            The AtlasMart team
           </Text>
         </Container>
       </Body>

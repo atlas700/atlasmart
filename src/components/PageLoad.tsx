@@ -7,7 +7,7 @@ const PageLoad = () => {
         <div className="flex items-center gap-2">
           <span className="text-4xl">🛍</span>
 
-          <span className="text-3xl">LocalMart</span>
+          <span className="text-3xl">AtlasMart</span>
         </div>
 
         <div className="w-20 h-20 rounded-full border-t-4 border-l-4 border-violet-500 animate-spin" />

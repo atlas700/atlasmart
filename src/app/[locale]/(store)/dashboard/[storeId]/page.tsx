@@ -91,7 +91,7 @@ export default async function StoreDashboardPage({
                 )}
               >
                 {formatPrice(totalRevenue, {
-                  currency: "GBP",
+                  currency: "USD",
                 })}
               </div>
             </CardContent>

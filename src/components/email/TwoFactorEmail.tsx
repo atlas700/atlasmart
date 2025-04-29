@@ -39,11 +39,11 @@ export const EmailTemplate = ({ code }: EmailTemplateProps) => {
     <Html>
       <Head />
 
-      <Preview>LocalMart</Preview>
+      <Preview>AtlasMart</Preview>
 
       <Body style={main}>
         <Container style={container}>
-          <Text style={title}>🛍 LocalMart</Text>
+          <Text style={title}>🛍 AtlasMart</Text>
 
           <Text style={paragraph}>Hi there,</Text>
 
@@ -52,7 +52,7 @@ export const EmailTemplate = ({ code }: EmailTemplateProps) => {
           <Text style={paragraph}>
             Best,
             <br />
-            The LocalMart team
+            The AtlasMart team
           </Text>
         </Container>
       </Body>
