@@ -16,12 +16,13 @@ export default async function StorePage({
   searchParams,
 }: {
   params: Promise<{ storeId: string }>;
-  searchParams: Promise<{ search: string }>;
+  searchParams: Promise<{ [key: string]: string }>;
 }) {
   const { storeId } = await params;
   const { search } = await searchParams;
 
   const store = await getProductStore(storeId);
+  console.log("search", await searchParams);
 
   if (!store) {
     return redirect("/");

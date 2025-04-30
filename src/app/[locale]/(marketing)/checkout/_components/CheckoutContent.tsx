@@ -3,7 +3,7 @@
 import React from "react";
 import Empty from "@/components/Empty";
 import OrderSummary from "./OrderSummary";
-import { getCartItems } from "@/data/cart";
+import { getCartItems } from "@/features/cart/db/cart";
 import { useQuery } from "@tanstack/react-query";
 import CartItem from "@/components/cart/CartItem";
 import CheckoutSkeleton from "@/components/CheckoutSkeleton";
@@ -18,7 +18,7 @@ const CheckoutContent = () => {
     queryFn: async () => {
       const data = await getCartItems();
 
-      return data;
+      return data as any;
     },
   });
 
@@ -41,7 +41,7 @@ const CheckoutContent = () => {
           <div className="md:col-span-2">
             {cart?.cartItems && cart?.cartItems?.length > 0 ? (
               <div className="space-y-5">
-                {cart.cartItems.map((item, i) => (
+                {cart.cartItems.map((item: any, i: number) => (
                   <CartItem
                     key={item.id}
                     cartItem={item}

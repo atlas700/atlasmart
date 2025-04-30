@@ -1,17 +1,15 @@
 import { db } from "@/drizzle/db";
-import {
-  AvailableItemTable,
-  CategoryTable,
-  ProductItemTable,
-  ProductTable,
-  StoreTable,
-} from "@/drizzle/schema";
-import { and, desc, eq, exists, gt, ilike, or } from "drizzle-orm";
+import { ProductTable, StoreTable } from "@/drizzle/schema";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ storeId: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{ storeId: string }>;
+  }
 ) {
   try {
     const url = new URL(request.url);
@@ -29,6 +27,7 @@ export async function GET(
       });
 
     const { storeId } = await params;
+    console.log("SEARCH QUERY", q, page, storeId, limit);
 
     if (!storeId) {
       return new Response("Store Id is required", { status: 400 });
@@ -53,63 +52,11 @@ export async function GET(
         where: and(
           eq(ProductTable.storeId, storeId),
           eq(ProductTable.status, "APPROVED"),
-          or(
-            ilike(ProductTable.name, `%${q}%`),
-            ilike(ProductTable.name, q),
-            exists(
-              db
-                .select()
-                .from(CategoryTable)
-                .where(
-                  and(
-                    eq(CategoryTable.id, ProductTable.categoryId),
-                    or(
-                      ilike(CategoryTable.name, `%${q}%`),
-                      ilike(CategoryTable.name, q)
-                    )
-                  )
-                )
-            )
-          ),
-          exists(
-            db
-              .select()
-              .from(ProductItemTable)
-              .where(
-                and(
-                  eq(ProductItemTable.productId, ProductTable.id),
-                  exists(
-                    db
-                      .select()
-                      .from(AvailableItemTable)
-                      .where(
-                        and(
-                          eq(
-                            AvailableItemTable.productItemId,
-                            ProductItemTable.id
-                          ),
-                          gt(AvailableItemTable.numInStocks, 0)
-                        )
-                      )
-                  )
-                )
-              )
-          )
+          or(ilike(ProductTable.name, `%${q}%`), ilike(ProductTable.name, q))
         ),
         with: {
           category: true,
           productItems: {
-            where: exists(
-              db
-                .select()
-                .from(AvailableItemTable)
-                .where(
-                  and(
-                    eq(AvailableItemTable.productItemId, ProductItemTable.id),
-                    gt(AvailableItemTable.numInStocks, 0)
-                  )
-                )
-            ),
             with: {
               availableItems: {
                 with: {
@@ -132,46 +79,11 @@ export async function GET(
       products = await db.query.ProductTable.findMany({
         where: and(
           eq(ProductTable.storeId, storeId),
-          eq(ProductTable.status, "APPROVED"),
-          exists(
-            db
-              .select()
-              .from(ProductItemTable)
-              .where(
-                and(
-                  eq(ProductItemTable.productId, ProductTable.id),
-                  exists(
-                    db
-                      .select()
-                      .from(AvailableItemTable)
-                      .where(
-                        and(
-                          eq(
-                            AvailableItemTable.productItemId,
-                            ProductItemTable.id
-                          ),
-                          gt(AvailableItemTable.numInStocks, 0)
-                        )
-                      )
-                  )
-                )
-              )
-          )
+          eq(ProductTable.status, "APPROVED")
         ),
         with: {
           category: true,
           productItems: {
-            where: exists(
-              db
-                .select()
-                .from(AvailableItemTable)
-                .where(
-                  and(
-                    eq(AvailableItemTable.productItemId, ProductItemTable.id),
-                    gt(AvailableItemTable.numInStocks, 0)
-                  )
-                )
-            ),
             with: {
               availableItems: {
                 with: {

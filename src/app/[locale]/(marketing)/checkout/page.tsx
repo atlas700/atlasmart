@@ -1,19 +1,19 @@
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { Separator } from "@/components/ui/separator";
 import CheckoutContent from "./_components/CheckoutContent";
+import { getCurrentUser } from "@/services/clerk";
+import { userRoles } from "@/drizzle/schema";
 
 export default async function CheckoutPage() {
-  const { user } = await currentUser();
+  const { user } = await getCurrentUser({ allData: true });
 
   if (!user) {
-    return redirect("/auth/sign-in");
+    return redirect("/sign-in");
   }
 
-  if (user.role !== UserRole.USER) {
+  if (user.role !== userRoles[0]) {
     return redirect("/");
   }
 

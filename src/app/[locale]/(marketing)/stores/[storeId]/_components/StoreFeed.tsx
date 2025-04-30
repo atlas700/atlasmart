@@ -68,8 +68,6 @@ const StoreFeed = ({ storeId, searchValue, initialData }: Props) => {
     );
   }
 
-  console.log(products);
-
   return (
     <>
       <div
