@@ -4,7 +4,7 @@ import React from "react";
 import { toast } from "sonner";
 import axios, { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
-import { CartItemType } from "../../../../types";
+import { CartItemType } from "../../../../../../types";
 import BtnSpinner from "@/components/BtnSpinner";
 import { useMutation } from "@tanstack/react-query";
 import { CartItemsValidator } from "@/lib/validators/cart-item";
