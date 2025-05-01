@@ -22,6 +22,8 @@ export default async function AdminProductsPage({
     status,
   });
 
+  console.log("products", products);
+
   return (
     <Container>
       <Heading

@@ -1,12 +1,12 @@
+import { orderStatuses } from "@/drizzle/schema";
 import { z } from "zod";
-import { OrderStatus } from "@prisma/client";
 
 export const OrderStatusSchema = z.object({
   status: z.enum([
-    OrderStatus.READYFORSHIPPING,
-    OrderStatus.SHIPPED,
-    OrderStatus.OUTFORDELIVERY,
-    OrderStatus.DELIVERED,
+    orderStatuses[3],
+    orderStatuses[4],
+    orderStatuses[5],
+    orderStatuses[6],
   ]),
 });
 

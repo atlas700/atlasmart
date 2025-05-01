@@ -51,7 +51,7 @@ const StatusModal = ({ open, onOpenChange, data }: Props) => {
     resolver: zodResolver(ProductStatusSchema),
     defaultValues: {
       status: data.status,
-      statusFeedback: data.statusFeedback,
+      statusFeedback: data.statusFeedback!,
     },
   });
 
