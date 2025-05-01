@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { OrderCol } from "@/types";
+import { OrderCol } from "../../../../../../types";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -120,7 +120,7 @@ const ReturnOrder = ({ open, onOpenChange, order }: Props) => {
 
                     <ScrollArea>
                       <div className="space-y-3 px-1">
-                        {order.orderItems.map((item) => (
+                        {order.orderItems.map((item: any) => (
                           <FormField
                             key={item.id}
                             control={form.control}

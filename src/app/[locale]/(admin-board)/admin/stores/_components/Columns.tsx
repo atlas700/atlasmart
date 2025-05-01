@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Store } from "@prisma/client";
 import CellActions from "./CellActions";
 import { Check, X } from "lucide-react";
 import { cn, getStatusColor } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
+import { StoreTable } from "@/drizzle/schema";
 
-export type CategoryCol = Store;
+export type CategoryCol = typeof StoreTable.$inferSelect;
 
 export const columns: ColumnDef<CategoryCol>[] = [
   { accessorKey: "name", header: "Name" },

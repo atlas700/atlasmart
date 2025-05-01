@@ -23,11 +23,9 @@ export const getUserOrdersByStatus = async ({
   status: string;
 }) => {
   try {
-    const user = await prismadb.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
+    const user = await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, userId),
+      columns: {
         id: true,
       },
     });
@@ -39,68 +37,146 @@ export const getUserOrdersByStatus = async ({
     let orders = [];
 
     if (status && status !== "all") {
-      orders = await prismadb.order.findMany({
-        where: {
-          userId: user.id,
-          status: getOrderStatusValue(status),
-        },
-        include: {
+      orders = await db.query.OrderTable.findMany({
+        where: eq(OrderTable.userId, user.id),
+        with: {
           orderItems: {
-            include: {
+            columns: {
+              id: true,
+              productId: true,
+              productItemId: true,
+              availableItemId: true,
+              quantity: true,
+            },
+            with: {
               product: {
-                select: {
+                columns: {
                   name: true,
                 },
               },
               productItem: {
-                select: {
+                columns: {
                   images: true,
                 },
               },
               availableItem: {
-                select: {
+                columns: {
                   currentPrice: true,
-                  size: true,
+                },
+                with: {
+                  size: {
+                    columns: {
+                      name: true,
+                    },
+                  },
                 },
               },
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: desc(OrderTable.createdAt),
       });
+      // orders = await prismadb.order.findMany({
+      //   where: {
+      //     userId: user.id,
+      //     status: getOrderStatusValue(status),
+      //   },
+      //   include: {
+      //     orderItems: {
+      //       include: {
+      //         product: {
+      //           select: {
+      //             name: true,
+      //           },
+      //         },
+      //         productItem: {
+      //           select: {
+      //             images: true,
+      //           },
+      //         },
+      //         availableItem: {
+      //           select: {
+      //             currentPrice: true,
+      //             size: true,
+      //           },
+      //         },
+      //       },
+      //     },
+      //   },
+      //   orderBy: {
+      //     createdAt: "desc",
+      //   },
+      // });
     } else {
-      orders = await prismadb.order.findMany({
-        where: {
-          userId: user.id,
-        },
-        include: {
+      orders = await db.query.OrderTable.findMany({
+        where: eq(OrderTable.userId, user.id),
+        with: {
           orderItems: {
-            include: {
+            columns: {
+              id: true,
+              productId: true,
+              productItemId: true,
+              availableItemId: true,
+              quantity: true,
+            },
+            with: {
               product: {
-                select: {
+                columns: {
                   name: true,
                 },
               },
               productItem: {
-                select: {
+                columns: {
                   images: true,
                 },
               },
               availableItem: {
-                select: {
+                columns: {
                   currentPrice: true,
-                  size: true,
+                },
+                with: {
+                  size: {
+                    columns: {
+                      name: true,
+                    },
+                  },
                 },
               },
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: desc(OrderTable.createdAt),
       });
+      // orders = await prismadb.order.findMany({
+      //   where: {
+      //     userId: user.id,
+      //   },
+      //   include: {
+      //     orderItems: {
+      //       include: {
+      //         product: {
+      //           select: {
+      //             name: true,
+      //           },
+      //         },
+      //         productItem: {
+      //           select: {
+      //             images: true,
+      //           },
+      //         },
+      //         availableItem: {
+      //           select: {
+      //             currentPrice: true,
+      //             size: true,
+      //           },
+      //         },
+      //       },
+      //     },
+      //   },
+      //   orderBy: {
+      //     createdAt: "desc",
+      //   },
+      // });
     }
 
     return orders;
@@ -225,93 +301,93 @@ export const getStoreOrdersByStatus = async ({
   }
 };
 
-export const getAdminOrdersByStatus = async ({
-  userId,
-  status,
-}: {
-  userId: string;
-  status: string;
-}) => {
-  try {
-    const user = await prismadb.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
+// export const getAdminOrdersByStatus = async ({
+//   userId,
+//   status,
+// }: {
+//   userId: string;
+//   status: string;
+// }) => {
+//   try {
+//     const user = await prismadb.user.findUnique({
+//       where: {
+//         id: userId,
+//       },
+//       select: {
+//         id: true,
+//         role: true,
+//       },
+//     });
 
-    if (!user || !user.id || user.role !== UserRole.ADMIN) {
-      return [];
-    }
+//     if (!user || !user.id || user.role !== UserRole.ADMIN) {
+//       return [];
+//     }
 
-    let orders = [];
+//     let orders = [];
 
-    if (status && status !== "all") {
-      orders = await prismadb.order.findMany({
-        where: {
-          status: getOrderStatusValue(status),
-        },
-        include: {
-          orderItems: {
-            include: {
-              product: {
-                select: {
-                  name: true,
-                },
-              },
-              productItem: {
-                select: {
-                  images: true,
-                },
-              },
-              availableItem: {
-                select: {
-                  currentPrice: true,
-                  size: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-    } else {
-      orders = await prismadb.order.findMany({
-        include: {
-          orderItems: {
-            include: {
-              product: {
-                select: {
-                  name: true,
-                },
-              },
-              productItem: {
-                select: {
-                  images: true,
-                },
-              },
-              availableItem: {
-                select: {
-                  currentPrice: true,
-                  size: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-    }
+//     if (status && status !== "all") {
+//       orders = await prismadb.order.findMany({
+//         where: {
+//           status: getOrderStatusValue(status),
+//         },
+//         include: {
+//           orderItems: {
+//             include: {
+//               product: {
+//                 select: {
+//                   name: true,
+//                 },
+//               },
+//               productItem: {
+//                 select: {
+//                   images: true,
+//                 },
+//               },
+//               availableItem: {
+//                 select: {
+//                   currentPrice: true,
+//                   size: true,
+//                 },
+//               },
+//             },
+//           },
+//         },
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       });
+//     } else {
+//       orders = await prismadb.order.findMany({
+//         include: {
+//           orderItems: {
+//             include: {
+//               product: {
+//                 select: {
+//                   name: true,
+//                 },
+//               },
+//               productItem: {
+//                 select: {
+//                   images: true,
+//                 },
+//               },
+//               availableItem: {
+//                 select: {
+//                   currentPrice: true,
+//                   size: true,
+//                 },
+//               },
+//             },
+//           },
+//         },
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       });
+//     }
 
-    return orders;
-  } catch (err) {
-    return [];
-  }
-};
+//     return orders;
+//   } catch (err) {
+//     return [];
+//   }
+// };

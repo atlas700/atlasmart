@@ -10,7 +10,9 @@ import {
   SizeTable,
   StoreTable,
   StoreVerificationTokenTable,
+  UserRole,
 } from "@/drizzle/schema";
+import { getStoreStatusValue } from "@/lib/utils";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 
 export const getFirstStoreByUserId = async (userId: string) => {
@@ -77,42 +79,36 @@ export const getStoresByUserId = async ({ userId }: { userId: string }) => {
 //   }
 // };
 
-// export const getStoresByAdmin = async ({
-//   status,
-//   userRole,
-// }: {
-//   status?: string;
-//   userRole?: UserRole;
-// }) => {
-//   try {
-//     if (!userRole || userRole !== "ADMIN") {
-//       return [];
-//     }
+export const getStoresByAdmin = async ({
+  status,
+  userRole,
+}: {
+  status?: string;
+  userRole?: UserRole;
+}) => {
+  try {
+    if (!userRole || userRole !== "ADMIN") {
+      return [];
+    }
 
-//     let stores = [];
+    let stores = [];
 
-//     if (status && status !== "all") {
-//       stores = await prismadb.store.findMany({
-//         where: {
-//           status: getStoreStatusValue(status),
-//         },
-//         orderBy: {
-//           createdAt: "desc",
-//         },
-//       });
-//     } else {
-//       stores = await prismadb.store.findMany({
-//         orderBy: {
-//           createdAt: "desc",
-//         },
-//       });
-//     }
+    if (status && status !== "all") {
+      stores = await db.query.StoreTable.findMany({
+        where: eq(StoreTable.status, getStoreStatusValue(status)),
+        orderBy: desc(StoreTable.createdAt),
+      });
+    } else {
+      stores = await db.query.StoreTable.findMany({
+        orderBy: desc(StoreTable.createdAt),
+      });
+    }
 
-//     return stores;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return stores;
+  } catch (err) {
+    return [];
+  }
+};
 
 export const getBannersByStoreId = async (storeId: string) => {
   try {

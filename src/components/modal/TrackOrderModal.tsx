@@ -5,7 +5,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { OrderCol } from "../../../types";
 import { Separator } from "../ui/separator";
-import { OrderStatus } from "@prisma/client";
 import { ScrollArea } from "../ui/scroll-area";
 import { Truck, ShoppingBag, Container, MailCheck } from "lucide-react";
 import {
@@ -15,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { orderStatuses } from "@/drizzle/schema";
+import { escape } from "querystring";
 
 type Props = {
   isOpen: boolean;
@@ -68,7 +69,7 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
       <ScrollArea>
         <div className="flex flex-col items-center">
           <div className="w-full max-w-sm flex flex-wrap gap-0.5 justify-center px-4">
-            {order.orderItems.map((item) => (
+            {order.orderItems.map((item: any) => (
               <div
                 key={item.id}
                 className="relative w-12 h-12 rounded-full overflow-hidden"
@@ -85,10 +86,10 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
 
           <TrackStick
             isActive={
-              order.status === OrderStatus.READYFORSHIPPING ||
-              order.status === OrderStatus.SHIPPED ||
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[3] ||
+              order.status === orderStatuses[4] ||
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
@@ -96,18 +97,18 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
             Icon={ShoppingBag}
             message="Ready for Shipping"
             isActive={
-              order.status === OrderStatus.READYFORSHIPPING ||
-              order.status === OrderStatus.SHIPPED ||
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[3] ||
+              order.status === orderStatuses[4] ||
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
           <TrackStick
             isActive={
-              order.status === OrderStatus.SHIPPED ||
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[4] ||
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
@@ -115,16 +116,16 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
             Icon={Container}
             message="Shipped"
             isActive={
-              order.status === OrderStatus.SHIPPED ||
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[4] ||
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
           <TrackStick
             isActive={
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
@@ -132,17 +133,17 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
             Icon={Truck}
             message="Out For Delivery"
             isActive={
-              order.status === OrderStatus.OUTFORDELIVERY ||
-              order.status === OrderStatus.DELIVERED
+              order.status === orderStatuses[5] ||
+              order.status === orderStatuses[6]
             }
           />
 
-          <TrackStick isActive={order.status === OrderStatus.DELIVERED} />
+          <TrackStick isActive={order.status === orderStatuses[6]} />
 
           <TrackMessage
             Icon={MailCheck}
             message="Delivered"
-            isActive={order.status === OrderStatus.DELIVERED}
+            isActive={order.status === orderStatuses[6]}
           />
         </div>
       </ScrollArea>
@@ -150,11 +151,11 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
   );
 
   if (
-    order.status === OrderStatus.DELIVERED ||
-    order.status === OrderStatus.RETURNED ||
-    order.status === OrderStatus.RETURNREQUESTED ||
-    order.status === OrderStatus.RETURNING ||
-    order.status === OrderStatus.REFUNDED
+    order.status === orderStatuses[6] ||
+    order.status === orderStatuses[10] ||
+    order.status === orderStatuses[8] ||
+    order.status === orderStatuses[9] ||
+    order.status === orderStatuses[11]
   ) {
     content = (
       <div className="flex flex-col gap-5">
@@ -166,7 +167,7 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
           <h2 className="font-bold text-lg">Delivery Address</h2>
 
           <div className="space-y-1">
-            {order.address?.split(",").map((address, i) => (
+            {order.address?.split(",").map((address: any, i: number) => (
               <div key={i} className="text-sm">
                 {address ? address : "N/A"}
               </div>
@@ -177,7 +178,7 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
     );
   }
 
-  if (order.status === OrderStatus.CANCELLED) {
+  if (order.status === orderStatuses[7]) {
     content = (
       <div className="flex flex-col gap-5">
         <p className="text-red-500">Order has been cancelled!</p>
@@ -186,7 +187,7 @@ const TrackOrderModal = ({ isOpen, onClose, order }: Props) => {
           <h2 className="font-bold text-lg">Delivery Address</h2>
 
           <div className="space-y-1">
-            {order.address?.split(",").map((address, i) => (
+            {order.address?.split(",").map((address: any, i: number) => (
               <div key={i} className="text-sm">
                 {address ? address : "N/A"}
               </div>

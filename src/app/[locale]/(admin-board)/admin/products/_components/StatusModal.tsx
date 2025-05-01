@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Product, ProductStatus } from "@prisma/client";
 import {
   ProductStatusValidator,
   ProductStatusSchema,
@@ -37,11 +36,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { productStatuses, ProductTable } from "@/drizzle/schema";
 
 type Props = {
   open: boolean;
   onOpenChange: () => void;
-  data: Product;
+  data: typeof ProductTable.$inferSelect;
 };
 
 const StatusModal = ({ open, onOpenChange, data }: Props) => {
@@ -114,23 +114,23 @@ const StatusModal = ({ open, onOpenChange, data }: Props) => {
                       </FormControl>
 
                       <SelectContent>
-                        <SelectItem value={ProductStatus.PENDING}>
+                        <SelectItem value={productStatuses[0]}>
                           Pending
                         </SelectItem>
 
-                        <SelectItem value={ProductStatus.REVIEWING}>
+                        <SelectItem value={productStatuses[1]}>
                           Reviewing
                         </SelectItem>
 
-                        <SelectItem value={ProductStatus.APPROVED}>
+                        <SelectItem value={productStatuses[2]}>
                           Approved
                         </SelectItem>
 
-                        <SelectItem value={ProductStatus.DECLINED}>
+                        <SelectItem value={productStatuses[3]}>
                           Declined
                         </SelectItem>
 
-                        <SelectItem value={ProductStatus.ARCHIVED}>
+                        <SelectItem value={productStatuses[4]}>
                           Archived
                         </SelectItem>
                       </SelectContent>

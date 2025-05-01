@@ -1,26 +1,28 @@
-import { currentUser } from "@/lib/auth";
 import Container from "@/components/Container";
-import Heading from "../../../../components/Heading";
-import { getStoresByAdmin } from "@/data/store";
+import Heading from "@/components/Heading";
+import { getStoresByAdmin } from "@/features/store/db/store";
 import { columns } from "./_components/Columns";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
+import { getCurrentUser } from "@/services/clerk";
 
 export default async function AdminStoresPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     status: string;
-  };
+  }>;
 }) {
-  const { status } = searchParams;
+  const { status } = await searchParams;
 
-  const { user } = await currentUser();
+  const { user } = await getCurrentUser({ allData: true });
 
   const stores = await getStoresByAdmin({
     userRole: user?.role,
     status,
   });
+
+  console.log(status);
 
   return (
     <Container>

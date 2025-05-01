@@ -1,13 +1,13 @@
+import { storeStatuses } from "@/drizzle/schema";
 import { z } from "zod";
-import { storeStatus } from "@prisma/client";
 
 export const StatusSchema = z.object({
   status: z.enum([
-    storeStatus.APPROVED,
-    storeStatus.PENDING,
-    storeStatus.DECLINED,
-    storeStatus.REVIEWING,
-    storeStatus.CLOSED,
+    storeStatuses[2],
+    storeStatuses[0],
+    storeStatuses[3],
+    storeStatuses[1],
+    storeStatuses[4],
   ]),
   statusFeedback: z.string().min(1, { message: "Feedback is required" }),
 });

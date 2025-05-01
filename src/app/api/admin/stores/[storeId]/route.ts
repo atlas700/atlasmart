@@ -1,38 +1,36 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { db } from "@/drizzle/db";
+import { StoreTable, userRoles } from "@/drizzle/schema";
 import { StatusSchema } from "@/lib/validators/status";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import { getCurrentUser } from "@/services/clerk";
+import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: eq(StoreTable.id, storeId),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -42,29 +40,29 @@ export async function PATCH(
     try {
       validatedBody = StatusSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { status, statusFeedback } = validatedBody;
 
     if (!status || !statusFeedback) {
-      return new NextResponse("Status and feedback required!", { status: 400 });
+      return new Response("Status and feedback required!", { status: 400 });
     }
 
-    await prismadb.store.update({
-      where: {
-        id: storeId,
-      },
-      data: {
+    await db
+      .update(StoreTable)
+      .set({
         status,
         statusFeedback,
-      },
-    });
+      })
+      .where(eq(StoreTable.id, storeId));
 
-    return NextResponse.json({ message: "Status updated!" });
+    return new Response(JSON.stringify({ message: "Status updated!" }));
   } catch (err) {
     console.log("[STORE_STATUS_PATCH]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

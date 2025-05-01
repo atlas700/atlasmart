@@ -12,11 +12,6 @@ const nextConfig: NextConfig = {
         destination: "/api/webhooks/clerk/route",
         locale: false,
       },
-      {
-        source: "/api/products",
-        destination: "/api/products/route",
-        locale: false,
-      },
     ];
   },
   images: {
@@ -30,6 +25,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "utfs.io",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
         port: "",
         pathname: "/**",
       },

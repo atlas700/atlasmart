@@ -1,21 +1,21 @@
-import { currentUser } from "@/lib/auth";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
-import { getProductsByAdmin } from "@/data/product";
+import { getProductsByAdmin } from "@/features/products/db/products";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
+import { getCurrentUser } from "@/services/clerk";
 
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     status: string;
-  };
+  }>;
 }) {
-  const { status } = searchParams;
+  const { status } = await searchParams;
 
-  const { user } = await currentUser();
+  const { user } = await getCurrentUser({ allData: true });
 
   const products = await getProductsByAdmin({
     userRole: user?.role,

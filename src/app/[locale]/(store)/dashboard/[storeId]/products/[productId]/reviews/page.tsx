@@ -1,4 +1,3 @@
-import prismadb from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
@@ -6,19 +5,22 @@ import { columns } from "./_components/Columns";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
 import AverageRating from "@/components/AverageRating";
+import { db } from "@/drizzle/db";
+import { and, desc, eq } from "drizzle-orm";
+import { ProductTable, ReviewTable } from "@/drizzle/schema";
 
 export default async function ReviewsPage({
   params: { storeId, productId },
 }: {
   params: { storeId: string; productId: string };
 }) {
-  const product = await prismadb.product.findUnique({
-    where: {
-      id: productId,
-      storeId,
-      status: "APPROVED",
-    },
-    select: {
+  const product = await db.query.ProductTable.findFirst({
+    where: and(
+      eq(ProductTable.id, productId),
+      eq(ProductTable.storeId, storeId),
+      eq(ProductTable.status, "APPROVED")
+    ),
+    columns: {
       name: true,
     },
   });
@@ -27,14 +29,12 @@ export default async function ReviewsPage({
     return redirect(`/dashboard/${storeId}/products`);
   }
 
-  const reviews = await prismadb.review.findMany({
-    where: {
-      storeId,
-      productId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+  const reviews = await db.query.ReviewTable.findMany({
+    where: and(
+      eq(ReviewTable.storeId, storeId),
+      eq(ReviewTable.productId, productId)
+    ),
+    orderBy: desc(ReviewTable.createdAt),
   });
 
   return (

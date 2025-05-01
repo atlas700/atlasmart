@@ -8,7 +8,6 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Store, storeStatus } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StatusValidator, StatusSchema } from "@/lib/validators/status";
@@ -34,11 +33,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { storeStatuses, StoreTable } from "@/drizzle/schema";
 
 type Props = {
   open: boolean;
   onOpenChange: () => void;
-  data: Store;
+  data: typeof StoreTable.$inferSelect;
 };
 
 const StatusModal = ({ open, onOpenChange, data }: Props) => {
@@ -48,7 +48,7 @@ const StatusModal = ({ open, onOpenChange, data }: Props) => {
     resolver: zodResolver(StatusSchema),
     defaultValues: {
       status: data.status,
-      statusFeedback: data.statusFeedback,
+      statusFeedback: data.statusFeedback!,
     },
   });
 
@@ -111,25 +111,23 @@ const StatusModal = ({ open, onOpenChange, data }: Props) => {
                       </FormControl>
 
                       <SelectContent>
-                        <SelectItem value={storeStatus.PENDING}>
+                        <SelectItem value={storeStatuses[0]}>
                           Pending
                         </SelectItem>
 
-                        <SelectItem value={storeStatus.REVIEWING}>
+                        <SelectItem value={storeStatuses[1]}>
                           Reviewing
                         </SelectItem>
 
-                        <SelectItem value={storeStatus.APPROVED}>
+                        <SelectItem value={storeStatuses[2]}>
                           Approved
                         </SelectItem>
 
-                        <SelectItem value={storeStatus.DECLINED}>
+                        <SelectItem value={storeStatuses[3]}>
                           Declined
                         </SelectItem>
 
-                        <SelectItem value={storeStatus.CLOSED}>
-                          Closed
-                        </SelectItem>
+                        <SelectItem value={storeStatuses[4]}>Closed</SelectItem>
                       </SelectContent>
                     </Select>
 

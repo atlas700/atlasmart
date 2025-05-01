@@ -2,12 +2,11 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { OrderCol } from "@/types";
+import { OrderCol } from "../../../../../../types";
 import ReturnOrder from "./ReturnOrder";
 import { canCancel } from "@/lib/utils";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { OrderStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { MoreVertical, Eye, Ban, Undo2 } from "lucide-react";
@@ -21,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orderStatuses } from "@/drizzle/schema";
 
 type Props = {
   data: OrderCol;
@@ -37,7 +37,9 @@ const CellActions = ({ data }: Props) => {
 
   const { mutate, isPending } = useMutation({
     mutationKey: ["cancel-order", data.id],
-    mutationFn: async () => {
+    mutationFn: async (orderId: string) => {
+      console.log(orderId);
+
       await axios.patch(`/api/orders/${data.id}`);
     },
     onSuccess: () => {
@@ -66,12 +68,12 @@ const CellActions = ({ data }: Props) => {
         <CancelOrderModal
           open={cancelOrder}
           onClose={() => setCancelOrder(false)}
-          onConfirm={() => mutate()}
+          onConfirm={() => mutate(data.id)}
           isPending={isPending}
         />
       )}
 
-      {data.status === OrderStatus.DELIVERED && (
+      {data.status === orderStatuses[6] && (
         <ReturnOrder
           open={returnOrder}
           onOpenChange={() => setReturnOrder(false)}
@@ -111,7 +113,7 @@ const CellActions = ({ data }: Props) => {
             </DropdownMenuItem>
           )}
 
-          {data.status === OrderStatus.DELIVERED && (
+          {data.status === orderStatuses[6] && (
             <DropdownMenuItem
               onClick={() => setReturnOrder(true)}
               disabled={isPending}

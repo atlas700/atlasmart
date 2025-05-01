@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Store } from "@prisma/client";
 import StatusModal from "./StatusModal";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Pencil } from "lucide-react";
@@ -13,9 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { StoreTable } from "@/drizzle/schema";
 
 type Props = {
-  data: Store;
+  data: typeof StoreTable.$inferSelect;
 };
 
 const CellActions = ({ data }: Props) => {

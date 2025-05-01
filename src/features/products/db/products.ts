@@ -8,9 +8,13 @@ import {
   ProductTable,
   ReviewTable,
   SizeTable,
+  UserRole,
 } from "@/drizzle/schema";
-import { INFINITE_SCROLL_PAGINATION_RESULTS } from "@/lib/utils";
-import { and, desc, eq, exists, gt, ne, or, sql } from "drizzle-orm";
+import {
+  getProductStatusValue,
+  INFINITE_SCROLL_PAGINATION_RESULTS,
+} from "@/lib/utils";
+import { and, count, desc, eq, exists, gt, ne, or, sql } from "drizzle-orm";
 import { RecommendedType } from "../../../../types";
 
 export const getHomePageProducts = async () => {
@@ -308,6 +312,83 @@ export const getRecommendedProducts = async (product: RecommendedType) => {
     // });
 
     return recommendedProducts;
+  } catch (err) {
+    return [];
+  }
+};
+
+export const getProductsByAdmin = async ({
+  status,
+  userRole,
+}: {
+  status?: string;
+  userRole?: UserRole;
+}) => {
+  try {
+    if (!userRole || userRole !== "ADMIN") {
+      return [];
+    }
+
+    let products = [];
+
+    if (status && status !== "all") {
+      products = await db
+        .select({
+          id: ProductTable.id,
+          userId: ProductTable.userId,
+          storeId: ProductTable.storeId,
+          name: ProductTable.name,
+          categoryId: ProductTable.categoryId,
+          description: ProductTable.description,
+          status: ProductTable.status,
+          statusFeedback: ProductTable.statusFeedback,
+          createdAt: ProductTable.createdAt,
+          updatedAt: ProductTable.updatedAt,
+          category: {
+            name: CategoryTable.name,
+          },
+          _count: {
+            productItems: count(ProductItemTable.id),
+          },
+        })
+        .from(ProductTable)
+        .where(eq(ProductTable.status, getProductStatusValue(status)))
+        .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
+        .leftJoin(
+          ProductItemTable,
+          eq(ProductItemTable.productId, ProductTable.id)
+        )
+        .orderBy(desc(ProductTable.createdAt));
+    } else {
+      products = await db
+        .select({
+          id: ProductTable.id,
+          userId: ProductTable.userId,
+          storeId: ProductTable.storeId,
+          name: ProductTable.name,
+          categoryId: ProductTable.categoryId,
+          description: ProductTable.description,
+          status: ProductTable.status,
+          statusFeedback: ProductTable.statusFeedback,
+          createdAt: ProductTable.createdAt,
+          updatedAt: ProductTable.updatedAt,
+          category: {
+            name: CategoryTable.name,
+          },
+          _count: {
+            productItems: count(ProductItemTable.id),
+          },
+        })
+        .from(ProductTable)
+        .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
+        .leftJoin(
+          ProductItemTable,
+          eq(ProductItemTable.productId, ProductTable.id)
+        )
+        .orderBy(desc(ProductTable.createdAt));
+    }
+
+    return products;
   } catch (err) {
     return [];
   }

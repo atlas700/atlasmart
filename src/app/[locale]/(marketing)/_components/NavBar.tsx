@@ -39,6 +39,11 @@ export default async function NavBar({ locale }: { locale: Locale }) {
                   </Button>
                 )}
                 <UserButton />
+                {user.role === userRoles[0] && (
+                  <Button asChild size={"sm"} variant={"ghost"}>
+                    <Link href={"/orders"}>My Orders</Link>
+                  </Button>
+                )}
                 <Suspense>
                   <Cart currentUser={{ id: user.id, role: user.role }} />
                 </Suspense>

@@ -3,6 +3,7 @@ import {
   CartItemTable,
   CartTable,
   OrderItemTable,
+  OrderTable,
   userRoles,
 } from "@/drizzle/schema";
 import { stripe } from "@/lib/stripe";
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
     }
 
     const [order] = await db
-      .insert(CartTable)
+      .insert(OrderTable)
       .values({
         userId: user.id,
       })
