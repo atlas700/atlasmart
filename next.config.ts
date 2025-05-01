@@ -5,15 +5,6 @@ const nextConfig: NextConfig = {
     dynamicIO: true,
     authInterrupts: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: "/api/webhooks/clerk",
-        destination: "/api/webhooks/clerk/route",
-        locale: false,
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {

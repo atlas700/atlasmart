@@ -9,6 +9,7 @@ import {
   ProductTable,
   SizeTable,
   StoreTable,
+  userRoles,
   UserTable,
 } from "@/drizzle/schema";
 import { getOrderStatusValue } from "@/lib/utils";
@@ -309,80 +310,72 @@ export const getAdminOrdersByStatus = async ({
   status: string;
 }) => {
   try {
-    const user = await prismadb.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
+    const user = await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, userId),
+      columns: {
         id: true,
         role: true,
       },
     });
 
-    if (!user || !user.id || user.role !== UserRole.ADMIN) {
+    if (!user || !user.id || user.role !== userRoles[1]) {
       return [];
     }
 
     let orders = [];
 
     if (status && status !== "all") {
-      orders = await prismadb.order.findMany({
-        where: {
-          status: getOrderStatusValue(status),
-        },
-        include: {
+      orders = await db.query.OrderTable.findMany({
+        where: eq(OrderTable.status, getOrderStatusValue(status)),
+        with: {
           orderItems: {
-            include: {
+            with: {
               product: {
-                select: {
-                  name: true,
-                },
+                columns: { name: true },
               },
               productItem: {
-                select: {
+                columns: {
                   images: true,
                 },
               },
               availableItem: {
-                select: {
+                columns: {
                   currentPrice: true,
+                },
+                with: {
                   size: true,
                 },
               },
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: desc(OrderTable.createdAt),
       });
     } else {
-      orders = await prismadb.order.findMany({
-        include: {
+      orders = await db.query.OrderTable.findMany({
+        with: {
           orderItems: {
-            include: {
+            with: {
               product: {
-                select: {
-                  name: true,
-                },
+                columns: { name: true },
               },
               productItem: {
-                select: {
+                columns: {
                   images: true,
                 },
               },
               availableItem: {
-                select: {
+                columns: {
                   currentPrice: true,
+                },
+                with: {
                   size: true,
                 },
               },
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: desc(OrderTable.createdAt),
       });
     }
 

@@ -1,8 +1,4 @@
 import { format } from "date-fns";
-import prismadb from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
 import { sendOrderStatusUpdateEmail } from "@/lib/mail";
 import { OrderStatusSchema } from "@/lib/validators/order-status";
 import {
@@ -11,46 +7,45 @@ import {
   formatPrice,
   getOrderStatusText,
 } from "@/lib/utils";
+import { getCurrentUser } from "@/services/clerk";
+import { OrderTable, userRoles, UserTable } from "@/drizzle/schema";
+import { db } from "@/drizzle/db";
+import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { orderId } = params;
+    const { orderId } = await params;
 
     if (!orderId) {
-      return new NextResponse("Order Id is required", { status: 400 });
+      return new Response("Order Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized, You need to be logged in.", {
+      return new Response("Unauthorized, You need to be logged in.", {
         status: 401,
       });
     }
 
     //Check if user role is user
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse(
-        "Unauthorized, Only admin can change order status",
-        {
-          status: 401,
-        }
-      );
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized, Only admin can change order status", {
+        status: 401,
+      });
     }
 
     //check if order exists
-    const order = await prismadb.order.findUnique({
-      where: {
-        id: orderId,
-      },
+    const order = await db.query.OrderTable.findFirst({
+      where: eq(OrderTable.id, orderId),
     });
 
     if (!order) {
-      return new NextResponse("Order not found!", { status: 404 });
+      return new Response("Order not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -60,42 +55,15 @@ export async function PATCH(
     try {
       validatedBody = OrderStatusSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { status } = validatedBody;
 
     //Update order status
-    const updatedOrder = await prismadb.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        status,
-      },
-      select: {
-        id: true,
-        user: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-        orderItems: {
-          select: {
-            quantity: true,
-            availableItem: {
-              select: {
-                currentPrice: true,
-              },
-            },
-          },
-        },
-        status: true,
-        address: true,
-        createdAt: true,
-      },
-    });
+    const updatedOrder = await updateOrderStatus(orderId, status);
 
     //Send confirmation to user
     const totalAmount =
@@ -106,8 +74,8 @@ export async function PATCH(
       ) || 0 + TRANSACTION_FEE + SHIPPING_FEE;
 
     await sendOrderStatusUpdateEmail({
-      email: updatedOrder.user.email || "",
-      username: updatedOrder.user.name || "",
+      email: updatedOrder?.user.email || "",
+      username: updatedOrder?.user.name || "",
       orderId: updatedOrder?.id || "",
       orderDate: `${format(updatedOrder?.createdAt || "", "MMMM do, yyyy")}`,
       orderStatus: getOrderStatusText(updatedOrder?.status as any) || "",
@@ -115,10 +83,49 @@ export async function PATCH(
       totalAmount: `${formatPrice(totalAmount, { currency: "GBP" })}`,
     });
 
-    return NextResponse.json({ message: "Order status has been updated!" });
+    return new Response(
+      JSON.stringify({ message: "Order status has been updated!" })
+    );
   } catch (err) {
     console.log("[CHANGE_ORDER_STATUS]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
+}
+
+async function updateOrderStatus(
+  orderId: string,
+  status: "READYFORSHIPPING" | "SHIPPED" | "OUTFORDELIVERY" | "DELIVERED"
+) {
+  return await db.transaction(async (tx) => {
+    // 1) update the status column
+    await tx
+      .update(OrderTable) // 3️⃣ :contentReference[oaicite:2]{index=2}
+      .set({ status }) // 4️⃣ :contentReference[oaicite:3]{index=3}
+      .where(eq(OrderTable.id, orderId)); // 5️⃣ :contentReference[oaicite:4]{index=4}
+
+    // 2) fetch the updated row with nested relations
+    const updated = await tx.query.OrderTable.findFirst({
+      where: eq(OrderTable.id, orderId), // 6️⃣ :contentReference[oaicite:5]{index=5}
+      with: {
+        user: {
+          columns: { email: true, name: true },
+        },
+        orderItems: {
+          columns: { quantity: true },
+          with: {
+            availableItem: { columns: { currentPrice: true } },
+          },
+        },
+      },
+      columns: {
+        id: true,
+        status: true,
+        address: true,
+        createdAt: true,
+      },
+    }); // 7️⃣ :contentReference[oaicite:6]{index=6}
+
+    return updated;
+  });
 }
