@@ -1,94 +1,89 @@
-import prismadb from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
+import { db } from "@/drizzle/db";
+import { OrderTable, ReturnRequestTable, userRoles } from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { orderId } = params;
+    const { orderId } = await params;
 
     if (!orderId) {
-      return new NextResponse("Order Id is required", { status: 400 });
+      return new Response("Order Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized, You need to be logged in.", {
+      return new Response("Unauthorized, You need to be logged in.", {
         status: 401,
       });
     }
 
     //Check if user role is user
 
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse(
-        "Unauthorized, Only admin can get refund request",
-        {
-          status: 401,
-        }
-      );
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized, Only admin can get refund request", {
+        status: 401,
+      });
     }
 
     //check if order exists
-    const order = await prismadb.order.findUnique({
-      where: {
-        id: orderId,
-      },
+    const order = await db.query.OrderTable.findFirst({
+      where: eq(OrderTable.id, orderId),
     });
 
     if (!order) {
-      return new NextResponse("Order not found!", { status: 404 });
+      return new Response("Order not found!", { status: 404 });
     }
 
-    const returnRequest = await prismadb.returnRequest.findUnique({
-      where: {
-        orderId: order.id,
-      },
-      include: {
+    const returnRequest = await db.query.ReturnRequestTable.findFirst({
+      where: eq(ReturnRequestTable.orderId, order.id),
+      with: {
         returnItems: {
-          include: {
-            orderitem: {
-              select: {
+          with: {
+            orderItem: {
+              columns: {
                 quantity: true,
+              },
+              with: {
                 product: {
-                  select: {
-                    name: true,
+                  with: {
                     category: {
-                      select: {
+                      columns: {
                         name: true,
                       },
                     },
                   },
+                  columns: {
+                    name: true,
+                  },
                 },
                 productItem: {
-                  select: {
+                  columns: {
                     images: true,
                   },
                 },
                 availableItem: {
-                  select: {
+                  columns: {
                     currentPrice: true,
                   },
                 },
               },
             },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
         },
       },
+      orderBy: desc(ReturnRequestTable.createdAt),
     });
 
-    return NextResponse.json(returnRequest);
+    return new Response(JSON.stringify(returnRequest));
   } catch (err) {
     console.log("[RETURN_REQUEST_GET]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

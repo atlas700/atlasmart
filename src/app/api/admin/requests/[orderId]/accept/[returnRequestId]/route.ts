@@ -1,33 +1,29 @@
 import { format } from "date-fns";
-import prismadb from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { formatPrice } from "@/lib/utils";
-import { NextResponse } from "next/server";
-import { UserRole, OrderStatus } from "@prisma/client";
-import { currentUser } from "@/lib/auth";
 import { getRefundFailedReason } from "@/lib/functions";
 import { sendReturnOrderEmail, sendStoreReturnOrderEmail } from "@/lib/mail";
 
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string; returnRequestId: string } }
+  { params }: { params: Promise<{ orderId: string; returnRequestId: string }> }
 ) {
   try {
-    const { orderId, returnRequestId } = params;
+    const { orderId, returnRequestId } = await params;
 
     if (!orderId) {
-      return new NextResponse("Order Id is required", { status: 400 });
+      return new Response("Order Id is required", { status: 400 });
     }
 
     if (!returnRequestId) {
-      return new NextResponse("Return request Id is required", { status: 400 });
+      return new Response("Return request Id is required", { status: 400 });
     }
 
     //Check if there is a current user
     const { user } = await currentUser();
 
     if (!user) {
-      return new NextResponse("Unauthorized, You need to be logged in.", {
+      return new Response("Unauthorized, You need to be logged in.", {
         status: 401,
       });
     }
@@ -35,7 +31,7 @@ export async function POST(
     //Check if user role is user
 
     if (user.role !== UserRole.ADMIN) {
-      return new NextResponse(
+      return new Response(
         "Unauthorized, Only admin can accept refund request",
         {
           status: 401,
@@ -63,12 +59,12 @@ export async function POST(
     });
 
     if (!order) {
-      return new NextResponse("Order not found!", { status: 404 });
+      return new Response("Order not found!", { status: 404 });
     }
 
     //check if order status is RETURNREQUESTED
     if (order.status !== OrderStatus.RETURNREQUESTED) {
-      return new NextResponse("You order status is not return request!", {
+      return new Response("You order status is not return request!", {
         status: 401,
       });
     }
@@ -111,7 +107,7 @@ export async function POST(
     });
 
     if (!returnRequest) {
-      return new NextResponse("Return request not found!", { status: 404 });
+      return new Response("Return request not found!", { status: 404 });
     }
 
     //Get refund amount.
@@ -130,7 +126,7 @@ export async function POST(
     });
 
     if (refund.status !== "succeeded") {
-      return new NextResponse(
+      return new Response(
         `Refund was unsuccessful, reason: ${getRefundFailedReason(
           refund.failure_reason
         )}`,
@@ -204,7 +200,7 @@ export async function POST(
       })
     );
 
-    return NextResponse.json({
+    return Response.json({
       message: "Your return request has been accepted!",
     });
   } catch (err) {
@@ -214,9 +210,9 @@ export async function POST(
     if (err instanceof stripe.errors.StripeError) {
       console.log(`Stripe error occurred: ${err.message}`);
 
-      return new NextResponse(`Stripe Error: ${err.message}`, { status: 400 });
+      return new Response(`Stripe Error: ${err.message}`, { status: 400 });
     }
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
