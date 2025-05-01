@@ -7,7 +7,7 @@ import axios, { AxiosError } from "axios";
 import { formatPrice } from "@/lib/utils";
 import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
-import { ReturnRequestProps } from "@/types";
+import { ReturnRequestProps } from "../../../../../../../types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -96,7 +96,7 @@ const RequestModal = ({ open, onOpenChange, orderId }: Props) => {
 
               <ScrollArea>
                 <div className="space-y-4">
-                  {returnRequest.returnItems.map((item) => (
+                  {returnRequest.returnItems.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-2">
                       <div className="relative w-14 h-14 rounded-lg overflow-hidden">
                         <Image

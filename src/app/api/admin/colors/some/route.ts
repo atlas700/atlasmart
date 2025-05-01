@@ -1,22 +1,22 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import { db } from "@/drizzle/db";
+import { ColorTable, userRoles } from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized, You need to be logged in.", {
+      return new Response("Unauthorized, You need to be logged in.", {
         status: 401,
       });
     }
 
     //Check if user is an admin
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse("Unauthorized, You need to be an admin.", {
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized, You need to be an admin.", {
         status: 401,
       });
     }
@@ -27,18 +27,18 @@ export async function POST(request: Request) {
 
     const colors = await Promise.all(
       colorIds.map(async (id: string) => {
-        const color = await prismadb.color.findUnique({
-          where: { id },
+        const color = await db.query.ColorTable.findFirst({
+          where: eq(ColorTable.id, id),
         });
 
         return color;
       })
     );
 
-    return NextResponse.json(colors);
+    return new Response(JSON.stringify(colors));
   } catch (err) {
     console.log("[ADMIN_COLOR_GET_SOME]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

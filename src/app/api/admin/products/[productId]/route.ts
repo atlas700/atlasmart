@@ -1,39 +1,37 @@
-import prismadb from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
+import { db } from "@/drizzle/db";
+import { ProductTable, userRoles } from "@/drizzle/schema";
 import { ProductStatusSchema } from "@/lib/validators/product-status";
+import { getCurrentUser } from "@/services/clerk";
+import { eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-      },
-      include: {
+    const product = await db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
+      with: {
         productItems: {
-          include: {
+          with: {
             availableItems: {
-              include: {
+              with: {
                 size: true,
               },
             },
@@ -42,43 +40,41 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(product);
+    return new Response(JSON.stringify(product));
   } catch (err) {
     console.log("[PRODUCT_ADMIN_GET]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const { productId } = params;
+    const { productId } = await params;
 
     if (!productId) {
-      return new NextResponse("Product Id is required", { status: 400 });
+      return new Response("Product Id is required", { status: 400 });
     }
 
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    if (user.role !== UserRole.ADMIN) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[1]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    const product = await prismadb.product.findUnique({
-      where: {
-        id: productId,
-      },
+    const product = await db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
     });
 
     if (!product) {
-      return new NextResponse("Product not found!", { status: 404 });
+      return new Response("Product not found!", { status: 404 });
     }
 
     const body = await request.json();
@@ -88,29 +84,29 @@ export async function PATCH(
     try {
       validatedBody = ProductStatusSchema.parse(body);
     } catch (err) {
-      return NextResponse.json("Invalid Credentials", { status: 400 });
+      return new Response(JSON.stringify("Invalid Credentials"), {
+        status: 400,
+      });
     }
 
     const { status, statusFeedback } = validatedBody;
 
     if (!status || !statusFeedback) {
-      return new NextResponse("Status and feedback required!", { status: 400 });
+      return new Response("Status and feedback required!", { status: 400 });
     }
 
-    await prismadb.product.update({
-      where: {
-        id: productId,
-      },
-      data: {
+    await db
+      .update(ProductTable)
+      .set({
         status,
         statusFeedback,
-      },
-    });
+      })
+      .where(eq(ProductTable.id, productId));
 
-    return NextResponse.json({ message: "Status updated!" });
+    return new Response(JSON.stringify({ message: "Status updated!" }));
   } catch (err) {
     console.log("[PRODUCT_STATUS_PATCH]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

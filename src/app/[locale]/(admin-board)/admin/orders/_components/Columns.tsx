@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import { format } from "date-fns";
-import { OrderCol } from "@/types";
+import { OrderCol } from "../../../../../../../types";
 import CellActions from "./CellActions";
-import { OrderStatus } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn, getOrderStatusText } from "@/lib/utils";
+import { orderStatuses } from "@/drizzle/schema";
 
 export const columns: ColumnDef<OrderCol>[] = [
   {
@@ -27,7 +27,7 @@ export const columns: ColumnDef<OrderCol>[] = [
     header: "Items",
     cell: ({ row }) => (
       <div className="grid gap-2">
-        {row.original.orderItems.map((item) => (
+        {row.original.orderItems.map((item: any) => (
           <div key={item.id} className="flex items-center gap-2">
             <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0 rounded-full overflow-hidden">
               <Image
@@ -55,8 +55,8 @@ export const columns: ColumnDef<OrderCol>[] = [
       <div
         className={cn(
           "font-bold text-violet-500",
-          row.original.status === OrderStatus.CONFIRMED && "text-green-500",
-          row.original.status === OrderStatus.CANCELLED && "text-red-500"
+          row.original.status === orderStatuses[1] && "text-green-500",
+          row.original.status === orderStatuses[7] && "text-red-500"
         )}
       >
         {getOrderStatusText(row.original.status)}

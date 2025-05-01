@@ -6,9 +6,8 @@ import { Edit } from "lucide-react";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { OrderStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { AdminOrderStatusChange } from "@/types";
+import { AdminOrderStatusChange } from "../../../../../../../types";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,6 +35,7 @@ import {
   OrderStatusValidator,
   OrderStatusSchema,
 } from "@/lib/validators/order-status";
+import { orderStatuses } from "@/drizzle/schema";
 
 type Props = {
   orderId: string;
@@ -115,19 +115,17 @@ const StatusModal = ({ orderId, open, onOpenChange, currentStatus }: Props) => {
                     </FormControl>
 
                     <SelectContent>
-                      <SelectItem value={OrderStatus.READYFORSHIPPING}>
+                      <SelectItem value={orderStatuses[3]}>
                         Ready for Shipping
                       </SelectItem>
 
-                      <SelectItem value={OrderStatus.SHIPPED}>
-                        Shipped
-                      </SelectItem>
+                      <SelectItem value={orderStatuses[4]}>Shipped</SelectItem>
 
-                      <SelectItem value={OrderStatus.OUTFORDELIVERY}>
+                      <SelectItem value={orderStatuses[5]}>
                         Out for Delivery
                       </SelectItem>
 
-                      <SelectItem value={OrderStatus.DELIVERED}>
+                      <SelectItem value={orderStatuses[6]}>
                         Delivered
                       </SelectItem>
                     </SelectContent>

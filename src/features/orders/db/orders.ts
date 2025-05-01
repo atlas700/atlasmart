@@ -301,93 +301,93 @@ export const getStoreOrdersByStatus = async ({
   }
 };
 
-// export const getAdminOrdersByStatus = async ({
-//   userId,
-//   status,
-// }: {
-//   userId: string;
-//   status: string;
-// }) => {
-//   try {
-//     const user = await prismadb.user.findUnique({
-//       where: {
-//         id: userId,
-//       },
-//       select: {
-//         id: true,
-//         role: true,
-//       },
-//     });
+export const getAdminOrdersByStatus = async ({
+  userId,
+  status,
+}: {
+  userId: string;
+  status: string;
+}) => {
+  try {
+    const user = await prismadb.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
 
-//     if (!user || !user.id || user.role !== UserRole.ADMIN) {
-//       return [];
-//     }
+    if (!user || !user.id || user.role !== UserRole.ADMIN) {
+      return [];
+    }
 
-//     let orders = [];
+    let orders = [];
 
-//     if (status && status !== "all") {
-//       orders = await prismadb.order.findMany({
-//         where: {
-//           status: getOrderStatusValue(status),
-//         },
-//         include: {
-//           orderItems: {
-//             include: {
-//               product: {
-//                 select: {
-//                   name: true,
-//                 },
-//               },
-//               productItem: {
-//                 select: {
-//                   images: true,
-//                 },
-//               },
-//               availableItem: {
-//                 select: {
-//                   currentPrice: true,
-//                   size: true,
-//                 },
-//               },
-//             },
-//           },
-//         },
-//         orderBy: {
-//           createdAt: "desc",
-//         },
-//       });
-//     } else {
-//       orders = await prismadb.order.findMany({
-//         include: {
-//           orderItems: {
-//             include: {
-//               product: {
-//                 select: {
-//                   name: true,
-//                 },
-//               },
-//               productItem: {
-//                 select: {
-//                   images: true,
-//                 },
-//               },
-//               availableItem: {
-//                 select: {
-//                   currentPrice: true,
-//                   size: true,
-//                 },
-//               },
-//             },
-//           },
-//         },
-//         orderBy: {
-//           createdAt: "desc",
-//         },
-//       });
-//     }
+    if (status && status !== "all") {
+      orders = await prismadb.order.findMany({
+        where: {
+          status: getOrderStatusValue(status),
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  name: true,
+                },
+              },
+              productItem: {
+                select: {
+                  images: true,
+                },
+              },
+              availableItem: {
+                select: {
+                  currentPrice: true,
+                  size: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    } else {
+      orders = await prismadb.order.findMany({
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  name: true,
+                },
+              },
+              productItem: {
+                select: {
+                  images: true,
+                },
+              },
+              availableItem: {
+                select: {
+                  currentPrice: true,
+                  size: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    }
 
-//     return orders;
-//   } catch (err) {
-//     return [];
-//   }
-// };
+    return orders;
+  } catch (err) {
+    return [];
+  }
+};

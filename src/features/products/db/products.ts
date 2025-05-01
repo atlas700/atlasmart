@@ -14,7 +14,19 @@ import {
   getProductStatusValue,
   INFINITE_SCROLL_PAGINATION_RESULTS,
 } from "@/lib/utils";
-import { and, count, desc, eq, exists, gt, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  gt,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { RecommendedType } from "../../../../types";
 
 export const getHomePageProducts = async () => {
@@ -334,57 +346,39 @@ export const getProductsByAdmin = async ({
     if (status && status !== "all") {
       products = await db
         .select({
-          id: ProductTable.id,
-          userId: ProductTable.userId,
-          storeId: ProductTable.storeId,
-          name: ProductTable.name,
-          categoryId: ProductTable.categoryId,
-          description: ProductTable.description,
-          status: ProductTable.status,
-          statusFeedback: ProductTable.statusFeedback,
-          createdAt: ProductTable.createdAt,
-          updatedAt: ProductTable.updatedAt,
+          ...getTableColumns(ProductTable),
           category: {
             name: CategoryTable.name,
           },
           _count: {
-            productItems: count(ProductItemTable.id),
+            productItems: sql<number>`(
+              SELECT COUNT(*)
+              FROM ${ProductItemTable}
+              WHERE ${ProductItemTable.productId} = ${ProductTable.id}
+            )`,
           },
         })
         .from(ProductTable)
-        .where(eq(ProductTable.status, getProductStatusValue(status)))
         .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
-        .leftJoin(
-          ProductItemTable,
-          eq(ProductItemTable.productId, ProductTable.id)
-        )
+        .where(eq(ProductTable.status, getProductStatusValue(status)))
         .orderBy(desc(ProductTable.createdAt));
     } else {
       products = await db
         .select({
-          id: ProductTable.id,
-          userId: ProductTable.userId,
-          storeId: ProductTable.storeId,
-          name: ProductTable.name,
-          categoryId: ProductTable.categoryId,
-          description: ProductTable.description,
-          status: ProductTable.status,
-          statusFeedback: ProductTable.statusFeedback,
-          createdAt: ProductTable.createdAt,
-          updatedAt: ProductTable.updatedAt,
+          ...getTableColumns(ProductTable),
           category: {
             name: CategoryTable.name,
           },
           _count: {
-            productItems: count(ProductItemTable.id),
+            productItems: sql<number>`(
+              SELECT COUNT(*)
+              FROM ${ProductItemTable}
+              WHERE ${ProductItemTable.productId} = ${ProductTable.id}
+            )`,
           },
         })
         .from(ProductTable)
         .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
-        .leftJoin(
-          ProductItemTable,
-          eq(ProductItemTable.productId, ProductTable.id)
-        )
         .orderBy(desc(ProductTable.createdAt));
     }
 

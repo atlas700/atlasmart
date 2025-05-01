@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { OrderCol } from "@/types";
+import { OrderCol } from "../../../../../../../types";
 import StatusModal from "./StatusModal";
 import RequestModal from "./RequestModal";
 import { adminCanUpdate } from "@/lib/utils";
-import { OrderStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { AdminOrderStatusChange } from "@/types";
+import { AdminOrderStatusChange } from "../../../../../../../types";
 import TrackOrderModal from "@/components/modal/TrackOrderModal";
 import { MoreVertical, Eye, Upload, GitPullRequest } from "lucide-react";
 import {
@@ -18,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { orderStatuses } from "@/drizzle/schema";
 
 type Props = {
   data: OrderCol;
@@ -47,7 +47,7 @@ const CellActions = ({ data }: Props) => {
         />
       )}
 
-      {data.status === OrderStatus.RETURNREQUESTED && (
+      {data.status === orderStatuses[8] && (
         <RequestModal
           open={viewRequest}
           onOpenChange={() => setViewRequest(false)}
@@ -81,7 +81,7 @@ const CellActions = ({ data }: Props) => {
             </DropdownMenuItem>
           )}
 
-          {data.status === OrderStatus.RETURNREQUESTED && (
+          {data.status === orderStatuses[8] && (
             <DropdownMenuItem onClick={() => setViewRequest(true)}>
               <GitPullRequest className="w-4 h-4 mr-2" />
               Refund Request

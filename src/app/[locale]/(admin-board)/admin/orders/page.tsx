@@ -1,12 +1,12 @@
-import { currentUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import Heading from "@/components/Heading";
 import Container from "@/components/Container";
 import { columns } from "./_components/Columns";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/ui/data-table";
-import { getAdminOrdersByStatus } from "@/data/orders";
+import { getAdminOrdersByStatus } from "@/features/orders/db/orders";
+import { getCurrentUser } from "@/services/clerk";
+import { userRoles } from "@/drizzle/schema";
 
 export default async function AdminOrdersPage({
   searchParams: { status },
@@ -15,9 +15,9 @@ export default async function AdminOrdersPage({
     status: string;
   };
 }) {
-  const { user } = await currentUser();
+  const { user } = await getCurrentUser({ allData: true });
 
-  if (!user || user.role !== UserRole.ADMIN) {
+  if (!user || user.role !== userRoles[1]) {
     redirect("/");
   }
 
