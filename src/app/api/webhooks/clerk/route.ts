@@ -51,7 +51,6 @@ export async function POST(req: Request) {
           email,
           name,
           imageUrl: event.data.image_url,
-          role: "USER",
         });
 
         await syncClerkUserMetadata(user);

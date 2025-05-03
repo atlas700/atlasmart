@@ -3,6 +3,7 @@ import Heading from "@/components/Heading";
 import { Button } from "@/components/ui/button";
 import { userRoles } from "@/drizzle/schema";
 import { getHomePageProducts } from "@/features/products/db/products";
+import { Bean, Bell } from "lucide-react";
 import { getTranslation } from "@/lib/i18n/getTranslation";
 import { getCurrentUser } from "@/services/clerk";
 import { ArrowRight } from "lucide-react";
