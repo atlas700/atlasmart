@@ -1,80 +1,78 @@
-import prismadb from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { UserRole, storeStatus } from "@prisma/client";
-import { currentUser } from "@/lib/auth";
+import { db } from "@/drizzle/db";
+import {
+  ProductTable,
+  storeStatuses,
+  StoreTable,
+  userRoles,
+} from "@/drizzle/schema";
+import { getCurrentUser } from "@/services/clerk";
+import { and, eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = params;
+    const { storeId } = await params;
 
     if (!storeId) {
-      return new NextResponse("Store Id is required", { status: 400 });
+      return new Response("Store Id is required", { status: 400 });
     }
 
     //Check if there is a current user
-    const { user } = await currentUser();
+    const { user } = await getCurrentUser({ allData: true });
 
     if (!user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if user is a seller
-    if (user.role !== UserRole.SELLER) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (user.role !== userRoles[2]) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
     //Check if the user owns the store
-    const store = await prismadb.store.findUnique({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
+    const store = await db.query.StoreTable.findFirst({
+      where: and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)),
     });
 
     if (!store) {
-      return new NextResponse("Store not found!", { status: 404 });
+      return new Response("Store not found!", { status: 404 });
     }
 
     //Check if store has been approved
-    if (store.status !== storeStatus.APPROVED) {
-      return new NextResponse(
+    if (store.status !== storeStatuses[2]) {
+      return new Response(
         "Unauthorized, store needs to be approved before you can close it!",
         { status: 404 }
       );
     }
 
     //Archived all products that belongs to that store.
-    await prismadb.product.updateMany({
-      where: {
-        storeId,
-        userId: user.id,
-      },
-      data: {
+    await db
+      .update(ProductTable)
+      .set({
         status: "ARCHIVED",
         statusFeedback:
           "Your product has been archived. It will not longer be visible to the customers. To change this open your store from your settings",
-      },
-    });
+      })
+      .where(
+        and(eq(ProductTable.storeId, storeId), eq(StoreTable.userId, user.id))
+      );
 
-    await prismadb.store.update({
-      where: {
-        id: storeId,
-        userId: user.id,
-      },
-      data: {
+    await db
+      .update(StoreTable)
+      .set({
         status: "CLOSED",
         statusFeedback:
           "Your store has been closed and products belonging to this store is now invisible to customers. If you change your mind, you can reopen your store at any time from your settings.",
-      },
-    });
+      })
+      .where(and(eq(StoreTable.id, storeId), eq(StoreTable.userId, user.id)));
 
-    return NextResponse.json({ message: "Store Closed!" });
+    return new Response(JSON.stringify({ message: "Store Closed!" }));
   } catch (err) {
     console.log("[STORE_CLOSED]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }

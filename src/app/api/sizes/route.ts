@@ -31,10 +31,10 @@ export async function POST(request: Request) {
       })
     );
 
-    return NextResponse.json(sizes);
+    return new Response(JSON.stringify(sizes));
   } catch (err) {
     console.log("[SIZE_GET]", err);
 
-    return new NextResponse("Internal Error", { status: 500 });
+    return new Response("Internal Error", { status: 500 });
   }
 }
