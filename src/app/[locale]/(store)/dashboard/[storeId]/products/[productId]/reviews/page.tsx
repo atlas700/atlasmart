@@ -10,10 +10,11 @@ import { and, desc, eq } from "drizzle-orm";
 import { ProductTable, ReviewTable } from "@/drizzle/schema";
 
 export default async function ReviewsPage({
-  params: { storeId, productId },
+  params,
 }: {
-  params: { storeId: string; productId: string };
+  params: Promise<{ storeId: string; productId: string }>;
 }) {
+  const { productId, storeId } = await params;
   const product = await db.query.ProductTable.findFirst({
     where: and(
       eq(ProductTable.id, productId),

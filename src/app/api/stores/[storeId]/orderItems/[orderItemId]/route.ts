@@ -109,7 +109,7 @@ export async function PATCH(
       .returning();
 
     const updatedOrder = await db.query.OrderTable.findFirst({
-      where: eq(OrderTable.id, updatedOrderItem.orderId),
+      where: eq(OrderTable.id, updatedOrderItem!.orderId),
       columns: {
         id: true,
       },
@@ -129,11 +129,11 @@ export async function PATCH(
       await db
         .update(OrderTable)
         .set({ status: orderStatuses[3] })
-        .where(eq(OrderTable.id, updatedOrderItem.orderId));
+        .where(eq(OrderTable.id, updatedOrderItem!.orderId));
 
       // Get the updated order with relations
       const newOrder = await db.query.OrderTable.findFirst({
-        where: eq(OrderTable.id, updatedOrderItem.orderId),
+        where: eq(OrderTable.id, updatedOrderItem!.orderId),
         with: {
           user: {
             columns: { name: true, email: true },

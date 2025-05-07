@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import StatusModal from "./StatusModal";
-import { Product } from "@prisma/client";
 import ViewProduct from "./ViewProduct";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Pencil, Eye } from "lucide-react";
@@ -15,9 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ProductTable } from "@/drizzle/schema";
 
 type Props = {
-  data: Product;
+  data: typeof ProductTable.$inferSelect;
 };
 
 const CellActions = ({ data }: Props) => {

@@ -203,7 +203,7 @@ const AvailableForm = ({
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => deleteItem(availableItems[i].id)}
+                  onClick={() => deleteItem(availableItems[i]!.id)}
                   disabled={disabled || isPending}
                 >
                   Delete Item

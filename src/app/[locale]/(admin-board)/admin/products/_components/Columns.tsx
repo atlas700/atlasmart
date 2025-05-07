@@ -1,12 +1,12 @@
 "use client";
 
 import { format } from "date-fns";
-import { Product } from "@prisma/client";
 import CellActions from "./CellActions";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn, getProductColor } from "@/lib/utils";
+import { ProductTable } from "@/drizzle/schema";
 
-export type ProductCol = Product & {
+export type ProductCol = typeof ProductTable.$inferSelect & {
   category: {
     name: string;
   };

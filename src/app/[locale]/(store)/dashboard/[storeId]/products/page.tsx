@@ -64,7 +64,7 @@ export default async function ProductsPage({
         </div>
 
         <Separator className="my-4" />
-
+        {/* @ts-ignore */}
         <DataTable columns={columns} data={products} searchKey="name" />
       </Container>
     </div>

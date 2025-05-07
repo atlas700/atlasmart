@@ -1,11 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Color } from "@prisma/client";
 import CellActions from "./CellActions";
 import { ColumnDef } from "@tanstack/react-table";
+import { ColorTable } from "@/drizzle/schema";
 
-export type ColorCol = Color;
+export type ColorCol = typeof ColorTable.$inferSelect;
 
 export const columns: ColumnDef<ColorCol>[] = [
   { accessorKey: "name", header: "Name" },

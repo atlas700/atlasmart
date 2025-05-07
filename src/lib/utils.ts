@@ -425,7 +425,7 @@ export const generatePriceRanges = ({
   maxPrice: number;
   step: number;
 }) => {
-  let ranges = [];
+  const ranges = [];
 
   for (let minPrice = 0; minPrice <= maxPrice; minPrice += step) {
     ranges.push({

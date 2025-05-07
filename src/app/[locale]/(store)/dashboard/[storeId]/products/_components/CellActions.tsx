@@ -76,7 +76,7 @@ const CellActions = ({ data, index }: Props) => {
       <Status
         open={viewStatus}
         status={data.status}
-        statusFeedback={data.statusFeedback}
+        statusFeedback={data.statusFeedback!}
         onOpenChange={() => setViewStatus(false)}
       />
 

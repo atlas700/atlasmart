@@ -39,7 +39,7 @@ export default async function ProductPage({
     return redirect(`/dashboard/${storeId}/products`);
   }
 
-  product.productItems[0].colorIds
+  product?.productItems[0]?.colorIds;
 
   return (
     <Container>

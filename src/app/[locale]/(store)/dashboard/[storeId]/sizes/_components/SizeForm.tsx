@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Size } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { Input } from "@/components/ui/input";
@@ -20,9 +19,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { SizeTable } from "@/drizzle/schema";
 
 type Props = {
-  data?: Size;
+  data?: typeof SizeTable.$inferSelect;
 };
 
 const SizeForm = ({ data }: Props) => {

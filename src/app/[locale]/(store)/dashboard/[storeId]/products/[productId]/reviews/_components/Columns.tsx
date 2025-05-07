@@ -1,11 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Review } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { FaStar, FaRegStar } from "react-icons/fa6";
+import { ReviewTable } from "@/drizzle/schema";
 
-export type ReviewCol = Review;
+export type ReviewCol = typeof ReviewTable.$inferSelect;
 
 export const columns: ColumnDef<ReviewCol>[] = [
   {

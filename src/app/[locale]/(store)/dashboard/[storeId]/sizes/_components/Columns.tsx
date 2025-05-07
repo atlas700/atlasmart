@@ -1,11 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Size } from "@prisma/client";
 import CellActions from "./CellActions";
 import { ColumnDef } from "@tanstack/react-table";
+import { SizeTable } from "@/drizzle/schema";
 
-export type SizeCol = Size;
+export type SizeCol = typeof SizeTable.$inferSelect;
 
 export const columns: ColumnDef<SizeCol>[] = [
   { accessorKey: "name", header: "Name" },

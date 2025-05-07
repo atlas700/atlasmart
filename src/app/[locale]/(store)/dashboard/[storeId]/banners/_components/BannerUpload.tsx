@@ -57,7 +57,7 @@ const BannerUpload = ({
     // Preview image while uploading
     const file = files[0];
     const reader = new FileReader();
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file!);
     reader.onload = () => {
       if (reader.result) {
         setBase64(reader.result as string);

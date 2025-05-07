@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Banner } from "@prisma/client";
 import axios, { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
@@ -18,9 +17,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BannerTable } from "@/drizzle/schema";
 
 type Props = {
-  data: Banner;
+  data: typeof BannerTable.$inferSelect;
   index: number;
 };
 

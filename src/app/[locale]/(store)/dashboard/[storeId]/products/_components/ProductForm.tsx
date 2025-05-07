@@ -524,7 +524,7 @@ const ProductForm = ({ data, currentUser }: Props) => {
                         onClick={() => {
                           remove(index);
 
-                          deleteItem(data.productItems[index].id);
+                          deleteItem(data.productItems[index]!.id);
                         }}
                         disabled={creating || updating || deletingItem}
                         data-cy={`product-item-form-${index}-delete`}

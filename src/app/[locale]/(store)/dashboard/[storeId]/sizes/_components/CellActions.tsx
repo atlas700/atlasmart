@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Size } from "@prisma/client";
 import axios, { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
@@ -17,9 +16,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SizeTable } from "@/drizzle/schema";
 
 type Props = {
-  data: Size;
+  data: typeof SizeTable.$inferSelect;
   index: number;
 };
 

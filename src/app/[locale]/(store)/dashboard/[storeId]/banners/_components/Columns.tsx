@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { format } from "date-fns";
-import { Banner } from "@prisma/client";
 import CellActions from "./CellActions";
 import { Check, X } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
+import { BannerTable } from "@/drizzle/schema";
 
-export type BannerCol = Banner;
+export type BannerCol = typeof BannerTable.$inferSelect;
 
 export const columns: ColumnDef<BannerCol>[] = [
   { accessorKey: "name", header: "Name" },

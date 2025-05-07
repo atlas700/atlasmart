@@ -1,21 +1,9 @@
 "use client";
 
-import React from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import StatusFilters from "@/app/[locale]/(admin-board)/admin/stores/_components/StatusFilters";
 import ProductFilters from "@/app/[locale]/(admin-board)/admin/products/_components/ProductFilters";
-import {
-  SortingState,
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
+import StatusFilters from "@/app/[locale]/(admin-board)/admin/stores/_components/StatusFilters";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,6 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import React from "react";
 import OrderFilters from "../OrderFilters";
 
 interface DataTableProps<TData, TValue> {

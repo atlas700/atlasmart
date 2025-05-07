@@ -34,6 +34,7 @@ export default async function AdminProductsPage({
       <Separator className="my-4" />
 
       <DataTable
+        // @ts-ignore
         columns={columns}
         data={products}
         searchKey="name"

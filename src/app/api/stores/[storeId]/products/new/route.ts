@@ -103,7 +103,7 @@ export async function POST(
         const [productItem] = await db
           .insert(ProductItemTable)
           .values({
-            productId: product.id,
+            productId: product!.id,
             images: item.images,
             colorIds: item.colorIds || [],
             discount: item.discount,
@@ -112,14 +112,14 @@ export async function POST(
 
         await db.insert(AvailableItemTable).values(
           item.availableItems.map((item) => ({
-            productId: product.id,
-            productItemId: productItem.id,
+            productId: product!.id,
+            productItemId: productItem!.id,
             sizeId: item.sizeId,
             numInStocks: item.numInStocks,
             originalPrice: item.price,
             currentPrice: getCurrentPrice({
               price: item.price,
-              discount: productItem.discount || 0,
+              discount: productItem!.discount || 0,
             }),
           }))
         );
@@ -131,7 +131,7 @@ export async function POST(
             statusFeedback:
               "Your product has been approved. It will be shown to potential customers.",
           })
-          .where(eq(ProductTable.id, product.id))
+          .where(eq(ProductTable.id, product!.id))
           .returning({
             name: ProductTable.name,
             store: {
@@ -145,10 +145,10 @@ export async function POST(
         //Send email confirmation
         await sendCreatedProductEmail({
           email: user.email || "",
-          storeName: updatedProduct.store.name,
+          storeName: updatedProduct!.store.name,
           username: user.name || "",
-          productName: updatedProduct.name,
-          categoryName: updatedProduct.category.name,
+          productName: updatedProduct!.name,
+          categoryName: updatedProduct!.category.name,
         });
       })
     );

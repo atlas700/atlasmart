@@ -72,11 +72,11 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
   } = useQuery({
     queryKey: ["product-modal-colors", currentProductItem?.id],
     queryFn: async () => {
-      if (currentProductItem?.colorId.length === 0) return;
+      if (currentProductItem?.colorIds?.length === 0) return;
 
       const res = await axios.post(
         `/api/stores/${params.storeId}/colors/some`,
-        { colorIds: currentProductItem?.colorId }
+        { colorIds: currentProductItem?.colorIds }
       );
 
       return res.data as (typeof ColorTable.$inferSelect)[];

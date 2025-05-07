@@ -3,7 +3,6 @@ import { decimal, pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "../schemaHelpers";
 import { AvailableItemTable } from "./availableItem";
 import { CartItemTable } from "./cartItem";
-import { ColorTable } from "./color";
 import { OrderItemTable } from "./orderItem";
 import { ProductTable } from "./product";
 

@@ -67,7 +67,7 @@ const ProductSlider = ({ images }: Props) => {
             <div className="relative w-full h-[80vh] rounded-lg border overflow-hidden shadow-md">
               <Image
                 className="object-cover"
-                src={images[index]}
+                src={images[index]!}
                 fill
                 alt={`curr-product-detail-img`}
               />

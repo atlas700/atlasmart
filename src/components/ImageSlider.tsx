@@ -44,7 +44,7 @@ const ImageSlider = ({ images }: Props) => {
             <Image
               className="object-cover"
               fill
-              src={images[index]}
+              src={images[index]!}
               alt="product-img"
             />
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { RouteType } from "@/types";
+import { RouteType } from "../../../../../../types";
 import MobileRoutes from "@/components/nav/MobileRoutes";
 
 type Props = {

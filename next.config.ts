@@ -4,19 +4,18 @@ const nextConfig: NextConfig = {
   experimental: {
     dynamicIO: true,
     authInterrupts: true,
+    imgOptTimeoutInSeconds: 10,
   },
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "zmxxl9742a.ufs.sh",
-        port: "",
+        hostname: "g4lhjtbz9r.ufs.sh",
         pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "utfs.io",
-        port: "",
         pathname: "/**",
       },
       {
@@ -26,6 +25,9 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 

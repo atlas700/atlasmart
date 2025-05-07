@@ -9,12 +9,13 @@ import { getCurrentUser } from "@/services/clerk";
 import { userRoles } from "@/drizzle/schema";
 
 export default async function AdminOrdersPage({
-  searchParams: { status },
+  searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     status: string;
-  };
+  }>;
 }) {
+  const { status } = await searchParams;
   const { user } = await getCurrentUser({ allData: true });
 
   if (!user || user.role !== userRoles[1]) {

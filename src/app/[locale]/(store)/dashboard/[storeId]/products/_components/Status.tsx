@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { getProductColor } from "@/lib/utils";
-import { ProductStatus } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ProductStatus } from "@/drizzle/schema";
 
 type Props = {
   open: boolean;

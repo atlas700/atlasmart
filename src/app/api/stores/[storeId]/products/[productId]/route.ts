@@ -198,13 +198,13 @@ export async function PATCH(
             item.availableItems.map(async (item) => {
               await db.insert(AvailableItemTable).values({
                 productId: product.id,
-                productItemId: productItem.id,
+                productItemId: productItem!.id,
                 sizeId: item.sizeId,
                 numInStocks: item.numInStocks,
                 originalPrice: item.price,
                 currentPrice: getCurrentPrice({
                   price: item.price,
-                  discount: productItem.discount || 0,
+                  discount: productItem!.discount || 0,
                 }),
               });
             })
@@ -239,8 +239,8 @@ export async function PATCH(
       email: user.email || "",
       storeName: store.name,
       username: user.name || "",
-      productName: updatedProduct.name,
-      categoryName: updatedProduct.category.name,
+      productName: updatedProduct!.name,
+      categoryName: updatedProduct!.category.name,
     });
 
     return new Response(JSON.stringify({ message: "Product Updated!" }));

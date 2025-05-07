@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Image from "next/image";
-import { ProductItemType } from "@/types";
+import { ProductItemType } from "../../../../../../../types";
 import { cn, formatPrice } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import BtnSpinner from "@/components/BtnSpinner";
 import ImageSlider from "@/components/ImageSlider";
-import { Product, Size, Color } from ".prisma/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ColorTable, ProductTable, SizeTable } from "@/drizzle/schema";
 
 type Props = {
   isOpen: boolean;
@@ -24,7 +24,7 @@ type Props = {
   productId: string;
 };
 
-type ProductType = Product & {
+type ProductType = typeof ProductTable.$inferSelect & {
   productItems: ProductItemType[];
 };
 
@@ -33,7 +33,9 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
 
   const [activeItemIndex, setActiveItemIndex] = useState(0);
 
-  const [activeSize, setActiveSize] = useState<Size | null>(null);
+  const [activeSize, setActiveSize] = useState<
+    typeof SizeTable.$inferSelect | null
+  >(null);
 
   const [priceIndex, setPriceIndex] = useState(0);
 
@@ -63,12 +65,12 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
         colorIds: currentProductItem?.colorIds,
       });
 
-      return res.data as Color[];
+      return res.data as (typeof ColorTable.$inferSelect)[];
     },
   });
 
   const currentSizes =
-    currentProductItem?.availableItems?.map((item) => item.size) || [];
+    currentProductItem?.availableItems?.map((item: any) => item.size) || [];
 
   useEffect(() => {
     setMounted(true);
@@ -166,7 +168,7 @@ const ViewProduct = ({ isOpen, onClose, productId }: Props) => {
                   <h1 className="text-lg font-bold">Sizes:</h1>
 
                   <div className="flex flex-wrap gap-3">
-                    {currentSizes?.map((size, i) => (
+                    {currentSizes?.map((size: any, i: number) => (
                       <div
                         key={size?.id}
                         className={cn(

@@ -88,7 +88,7 @@ export async function PATCH(
       orderItemIds.map(async (id) => {
         await db.insert(ReturnItemTable).values({
           orderItemId: id,
-          returnRequestId: returnRequest.id,
+          returnRequestId: returnRequest!.id,
         });
       })
     );
@@ -103,7 +103,7 @@ export async function PATCH(
       .returning();
 
     const returnItems = await db.query.ReturnItemTable.findMany({
-      where: eq(ReturnItemTable.returnRequestId, returnRequest.id),
+      where: eq(ReturnItemTable.returnRequestId, returnRequest!.id),
       with: {
         orderItem: {
           columns: {
@@ -140,8 +140,8 @@ export async function PATCH(
     await sendReturnRequestEmail({
       email: user.email || "",
       username: user.name || "",
-      orderId: updatedOrder.id,
-      orderDate: `${format(updatedOrder.createdAt, "MMMM do, yyyy")}`,
+      orderId: updatedOrder!.id,
+      orderDate: `${format(updatedOrder!.createdAt, "MMMM do, yyyy")}`,
       items: allItems,
     });
 

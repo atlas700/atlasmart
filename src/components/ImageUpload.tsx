@@ -63,7 +63,7 @@ const ImageUpload = ({
         onChange(updatedBase64);
       } else {
         setBase64(uploadedUrls[0]);
-        onChange(uploadedUrls[0]);
+        onChange(uploadedUrls[0]!);
       }
 
       setFiles([]);

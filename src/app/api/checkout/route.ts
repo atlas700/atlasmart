@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     await Promise.all(
       cartItems.map(async (item) => {
         await db.insert(OrderItemTable).values({
-          orderId: order.id,
+          orderId: order!.id,
           storeId: item.product.storeId,
           productId: item?.product.id,
           productItemId: item?.productItem.id,
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout`,
       metadata: {
         userId: user.id,
-        orderId: order.id,
+        orderId: order!.id,
       },
     });
 

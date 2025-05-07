@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
         AvailableItemTable,
         eq(OrderItemTable.availableItemId, AvailableItemTable.id)
       )
-      .where(eq(OrderItemTable.orderId, updatedOrder.id));
+      .where(eq(OrderItemTable.orderId, updatedOrder!.id));
 
     // Combine the results
     const order = {
@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
             email: item!.store!.email || "",
             storeName: item!.store!.name || "",
             customerName: user.name || "",
-            orderDate: `${format(order.createdAt, "MMMM do, yyyy")}`,
+            orderDate: `${format(order.createdAt!, "MMMM do, yyyy")}`,
             items: `${item.product!.name} (Qty: ${
               item.quantity
             }), price: ${formatPrice(item.availableItem!.currentPrice, {

@@ -1,5 +1,4 @@
 import React from "react";
-import { storeStatus } from "@prisma/client";
 import { cn, getStatusColor } from "@/lib/utils";
 import {
   Card,
@@ -8,9 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { StoreStatus } from "@/drizzle/schema";
 
 type Props = {
-  status: storeStatus;
+  status: StoreStatus;
   statusFeedback: string;
 };
 

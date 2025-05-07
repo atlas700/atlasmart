@@ -1,11 +1,11 @@
 "use client";
 
 import { format } from "date-fns";
-import { Category } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import CellActions from "./CellActions";
+import { CategoryTable } from "@/drizzle/schema";
 
-export type CategoryCol = Category & {
+export type CategoryCol = typeof CategoryTable.$inferSelect & {
   _count: {
     products: number;
   };
