@@ -90,13 +90,13 @@ export const createStore = async (values: StoreValidator) => {
 
     //Generate verification code
     const storeVerificationToken = await generateStoreVerificationToken(
-      store.email
+      store!.email
     );
 
     //Send generated code
     await sendStoreVerificationTokenEmail({
-      email: storeVerificationToken.email,
-      token: storeVerificationToken.token,
+      email: storeVerificationToken!.email,
+      token: storeVerificationToken!.token,
     });
 
     return { verificationCode: true };
@@ -158,18 +158,18 @@ export const createStore = async (values: StoreValidator) => {
       //Send email notification
       await sendCreatedStoreEmail({
         email: storeUser?.email || "",
-        storeName: store.name,
-        description: store.description || "",
-        storeEmail: store.email,
-        ownerName: storeUser.name || "",
+        storeName: store!.name,
+        description: store!.description || "",
+        storeEmail: store!.email,
+        ownerName: storeUser!.name || "",
       });
 
       await sendCreatedStoreEmail({
-        email: store.email || "",
-        storeName: store.name,
-        description: store.description || "",
-        storeEmail: store.email,
-        ownerName: storeUser.name || "",
+        email: store!.email || "",
+        storeName: store!.name,
+        description: store!.description || "",
+        storeEmail: store!.email,
+        ownerName: storeUser!.name || "",
       });
 
       return {

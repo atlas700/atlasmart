@@ -2,7 +2,6 @@ import { db } from "@/drizzle/db";
 import { UserRole, UserTable } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { unstable_cacheTag as cacheTag } from "next/cache";
 
 const client = await clerkClient();
 
@@ -35,9 +34,6 @@ export function syncClerkUserMetadata(user: {
 }
 
 async function getUser(id: string) {
-  "use cache";
-  cacheTag("user");
-
   return db.query.UserTable.findFirst({
     where: eq(UserTable.id, id),
   });

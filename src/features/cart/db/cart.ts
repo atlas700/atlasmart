@@ -33,7 +33,7 @@ export const getCartItems = async () => {
     const cartItems = await db
       .select()
       .from(CartItemTable)
-      .where(eq(CartItemTable.cartId, userCart.id))
+      .where(eq(CartItemTable.cartId, userCart!.id))
       .orderBy(desc(CartItemTable.createdAt))
       .execute();
 
@@ -71,7 +71,7 @@ export const getCartItems = async () => {
         const sizes = await db
           .select()
           .from(SizeTable)
-          .where(eq(SizeTable.id, availableItemData.sizeId))
+          .where(eq(SizeTable.id, availableItemData!.sizeId))
           .execute();
         const sizeData = sizes[0];
 

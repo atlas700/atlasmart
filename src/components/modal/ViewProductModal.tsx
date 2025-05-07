@@ -256,7 +256,7 @@ const ViewProductModal = ({ isOpen, onClose, productId }: Props) => {
                       <Image
                         className="object-cover"
                         fill
-                        src={item.images[0]}
+                        src={item.images[0]!}
                         alt="product-item"
                       />
                     </div>

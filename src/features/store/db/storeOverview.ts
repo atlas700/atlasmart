@@ -237,7 +237,8 @@ export const getGraphData = async (
 
     // Filling in the revenue data
     for (const month in monthlyRevenue) {
-      graphData[parseInt(month)].total = monthlyRevenue[parseInt(month)];
+      // @ts-ignore
+      graphData[parseInt(month!)].total = monthlyRevenue[parseInt(month)];
     }
 
     return graphData;

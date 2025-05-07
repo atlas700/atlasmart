@@ -58,7 +58,7 @@ export const addToCartHandler = async (values: CartItemValidator) => {
         .execute();
     }
 
-    const cartId = cartRecords[0].id;
+    const cartId = cartRecords[0]!.id;
 
     // 3. Check if cart item exists
     const cartItems = await db
@@ -168,9 +168,9 @@ export const updateCartItem = async ({
 
     if (task === "add") {
       // Check stock availability
-      if (item.quantity >= item.availableNumInStocks!) {
+      if (item!.quantity >= item!.availableNumInStocks!) {
         throw new Error(
-          `Only ${item.availableNumInStocks} of this item is in stocks!`
+          `Only ${item!.availableNumInStocks} of this item is in stocks!`
         );
       }
 
@@ -182,7 +182,7 @@ export const updateCartItem = async ({
         .execute();
     } else {
       // Decrease quantity or delete
-      if (item.quantity > 1) {
+      if (item!.quantity > 1) {
         // Decrement by 1
         await db
           .update(CartItemTable)

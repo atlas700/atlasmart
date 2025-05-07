@@ -30,7 +30,7 @@ const getTranslationValue = (
   const key: string = keys.shift() || "";
 
   // Recursively call itself with remaining keys and translations
-  return getTranslationValue(keys, translation[key]);
+  return getTranslationValue(keys, translation[key]!);
 };
 
 /**
