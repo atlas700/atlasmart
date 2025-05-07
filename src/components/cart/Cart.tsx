@@ -54,7 +54,7 @@ const Cart = ({
 
   const cartTotal =
     // @ts-ignore
-    (cart!.cartItems!.reduce(
+    (cart?.cartItems?.reduce(
       (total: any, item: any) =>
         total + ((item.availableItem?.currentPrice || 0) * item?.quantity || 0),
       0
