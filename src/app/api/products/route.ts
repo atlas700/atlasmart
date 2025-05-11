@@ -1,10 +1,6 @@
 import { db } from "@/drizzle/db";
-import {
-  AvailableItemTable,
-  ProductItemTable,
-  ProductTable,
-} from "@/drizzle/schema";
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { AvailableItemTable, ProductTable } from "@/drizzle/schema";
+import { desc, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 
 export async function GET(request: Request) {

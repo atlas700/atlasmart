@@ -20,7 +20,7 @@ const CreateStoreLayout = async ({
     return redirect("/");
   }
 
-  const store = await getFirstStoreByUserId(user?.id);
+  const store = await getFirstStoreByUserId(user.id);
 
   if (store) {
     return redirect(`/dashboard/${store.id}`);
