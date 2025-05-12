@@ -31,7 +31,7 @@ export default async function ProductPage({
           id: product.id,
           name: product.name,
           category: {
-            name: product.category.name,
+            name: product?.category?.name,
           },
         }}
       />

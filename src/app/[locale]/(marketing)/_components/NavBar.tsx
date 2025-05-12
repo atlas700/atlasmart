@@ -49,7 +49,7 @@ export default async function NavBar({ locale }: { locale: Locale }) {
                 </Suspense>
               </div>
             ) : (
-              <Button variant="outline" data-testid="nav-sign-in-btn">
+              <Button variant="outline" data-testid="nav-sign-in-btn" asChild>
                 <Link href={`${locale}/sign-in`}>Sign In</Link>
               </Button>
             )}

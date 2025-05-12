@@ -97,16 +97,16 @@ async function updateOrderStatus(
   orderId: string,
   status: "READYFORSHIPPING" | "SHIPPED" | "OUTFORDELIVERY" | "DELIVERED"
 ) {
-  return await db.transaction(async (tx) => {
+  try {
     // 1) update the status column
-    await tx
-      .update(OrderTable) // 3️⃣ :contentReference[oaicite:2]{index=2}
-      .set({ status }) // 4️⃣ :contentReference[oaicite:3]{index=3}
-      .where(eq(OrderTable.id, orderId)); // 5️⃣ :contentReference[oaicite:4]{index=4}
+    await db
+      .update(OrderTable)
+      .set({ status })
+      .where(eq(OrderTable.id, orderId));
 
     // 2) fetch the updated row with nested relations
-    const updated = await tx.query.OrderTable.findFirst({
-      where: eq(OrderTable.id, orderId), // 6️⃣ :contentReference[oaicite:5]{index=5}
+    const updated = await db.query.OrderTable.findFirst({
+      where: eq(OrderTable.id, orderId),
       with: {
         user: {
           columns: { email: true, name: true },
@@ -124,8 +124,12 @@ async function updateOrderStatus(
         address: true,
         createdAt: true,
       },
-    }); // 7️⃣ :contentReference[oaicite:6]{index=6}
+    });
 
     return updated;
-  });
+  } catch (error) {
+    // Handle errors appropriately
+    console.error("Error updating order status:", error);
+    throw error;
+  }
 }

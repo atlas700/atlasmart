@@ -55,7 +55,7 @@ const ProductContent = ({ product, user }: Props) => {
       if (curProductItem?.colorIds.length === 0) return;
 
       const res = await axios.post(`/api/products/${product.id}/colors/some`, {
-        colorIds: curProductItem?.colorIds,
+        colorIds: curProductItem.colorIds,
       });
 
       return res.data as (typeof ColorTable.$inferSelect)[];
@@ -148,7 +148,7 @@ const ProductContent = ({ product, user }: Props) => {
         </div>
 
         <div className="w-full flex flex-wrap gap-2">
-          {product.productItems.map((item: any) => (
+          {product?.productItems?.map((item: any) => (
             <button
               key={item.id}
               className={cn(
@@ -158,12 +158,14 @@ const ProductContent = ({ product, user }: Props) => {
               onClick={() => setCurProductItem(item)}
               disabled={isPending}
             >
-              <Image
-                className="object-cover"
-                fill
-                src={item.images[0]}
-                alt={`product-item-${item.id}`}
-              />
+              <Suspense>
+                <Image
+                  className="object-cover"
+                  fill
+                  src={item.images[0] || ""}
+                  alt={`product-item-${item.id}`}
+                />
+              </Suspense>
             </button>
           ))}
         </div>
@@ -175,7 +177,7 @@ const ProductContent = ({ product, user }: Props) => {
             </h2>
 
             <div className="w-full max-w-md flex flex-wrap gap-2">
-              {colors.map((color) => (
+              {colors?.map((color) => (
                 <TooltipContainer key={color.id} message={color.name}>
                   <div
                     style={{ backgroundColor: color.value }}
@@ -192,7 +194,7 @@ const ProductContent = ({ product, user }: Props) => {
             <h2 className="text-lg font-semibold">Available Sizes:</h2>
 
             <div className="w-full max-w-md flex flex-wrap gap-2">
-              {currentSizes.map((item: any, i: number) => (
+              {currentSizes?.map((item: any, i: number) => (
                 <button
                   key={i}
                   className={cn(

@@ -14,6 +14,8 @@ type Props = {
 const ProductSlider = ({ images }: Props) => {
   const [index, setIndex] = useState(0);
 
+  console.log(images);
+
   return (
     <>
       <div className="md:hidden">

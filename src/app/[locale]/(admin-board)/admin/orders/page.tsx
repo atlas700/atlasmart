@@ -7,6 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { getAdminOrdersByStatus } from "@/features/orders/db/orders";
 import { getCurrentUser } from "@/services/clerk";
 import { userRoles } from "@/drizzle/schema";
+import { Suspense } from "react";
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -33,12 +34,14 @@ export default async function AdminOrdersPage({
 
       <Separator className="my-4" />
 
-      <DataTable
-        columns={columns}
-        data={orders}
-        isUserOrders
-        userOrderPath="/admin/orders"
-      />
+      <Suspense>
+        <DataTable
+          columns={columns}
+          data={orders}
+          isUserOrders
+          userOrderPath="/admin/orders"
+        />
+      </Suspense>
     </Container>
   );
 }

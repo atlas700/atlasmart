@@ -8,6 +8,7 @@ import {
   ProductTable,
   ReviewTable,
   SizeTable,
+  StoreTable,
   UserRole,
 } from "@/drizzle/schema";
 import {
@@ -16,8 +17,6 @@ import {
 } from "@/lib/utils";
 import {
   and,
-  count,
-  countDistinct,
   desc,
   eq,
   exists,
@@ -154,48 +153,51 @@ export const getProductById = async (productId: string) => {
       return null;
     }
 
-    // Try an alternative approach for the exists subquery
+    // const [result] = await db
+    //   .select({
+    //     ...getTableColumns(ProductTable),
+    //     category: CategoryTable,
+    //     store: StoreTable,
+    //     review: ReviewTable,
+    //     productItem: ProductItemTable,
+    //     availableItem: AvailableItemTable,
+    //     size: SizeTable,
+    //   })
+    //   .from(ProductTable)
+    //   .where(
+    //     and(eq(ProductTable.id, productId), eq(ProductTable.status, "APPROVED"))
+    //   )
+    //   .leftJoin(CategoryTable, eq(ProductTable.categoryId, CategoryTable.id))
+    //   .leftJoin(StoreTable, eq(ProductTable.storeId, StoreTable.id))
+    //   .leftJoin(
+    //     ProductItemTable,
+    //     eq(ProductTable.id, ProductItemTable.productId)
+    //   )
+    //   .leftJoin(
+    //     AvailableItemTable,
+    //     eq(ProductItemTable.id, AvailableItemTable.productItemId)
+    //   )
+    //   .leftJoin(SizeTable, eq(AvailableItemTable.sizeId, SizeTable.id))
+    //   .leftJoin(ReviewTable, eq(ProductTable.id, ReviewTable.productId))
+    //   .orderBy(desc(AvailableItemTable.createdAt));
+
     const product = await db.query.ProductTable.findFirst({
       where: and(
         eq(ProductTable.id, productId),
         eq(ProductTable.status, "APPROVED")
       ),
       with: {
+        category: true,
+        store: true,
+        reviews: true,
         productItems: {
-          where: (productItems) =>
-            exists(
-              db
-                .select({ value: sql`1` })
-                .from(AvailableItemTable)
-                .where(
-                  and(
-                    eq(AvailableItemTable.productItemId, productItems.id),
-                    gt(AvailableItemTable.numInStocks, 0)
-                  )
-                )
-            ),
           with: {
             availableItems: {
-              where: gt(AvailableItemTable.numInStocks, 0),
               with: {
                 size: true,
               },
-              orderBy: (availableItems, { desc }) => [
-                desc(availableItems.createdAt),
-              ],
+              orderBy: desc(AvailableItemTable.createdAt),
             },
-          },
-        },
-        category: true,
-        store: {
-          columns: {
-            name: true,
-            logo: true,
-          },
-        },
-        reviews: {
-          columns: {
-            value: true,
           },
         },
       },
@@ -203,6 +205,7 @@ export const getProductById = async (productId: string) => {
 
     return product;
   } catch (err) {
+    console.error(err);
     return null;
   }
 };
