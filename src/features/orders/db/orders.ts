@@ -2,19 +2,14 @@
 
 import { db } from "@/drizzle/db";
 import {
-  AvailableItemTable,
   OrderItemTable,
   OrderTable,
-  ProductItemTable,
-  ProductTable,
-  SizeTable,
   StoreTable,
   userRoles,
-  UserTable,
+  UserTable
 } from "@/drizzle/schema";
 import { getOrderStatusValue } from "@/lib/utils";
-import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { get } from "http";
+import { and, desc, eq } from "drizzle-orm";
 
 export const getUserOrdersByStatus = async ({
   userId,

@@ -221,10 +221,16 @@ export async function POST(req: NextRequest) {
     //Update number of product in stocks for each order item.
     await Promise.all(
       order.orderItems.map(async (orderItem) => {
+        const currentAvailableItem =
+          await db.query.AvailableItemTable.findFirst({
+            where: eq(AvailableItemTable.id, orderItem.availableItemId),
+            columns: { numInStocks: true },
+          });
+
         await db
           .update(AvailableItemTable)
           .set({
-            numInStocks: orderItem.quantity - 1,
+            numInStocks: currentAvailableItem!.numInStocks - orderItem.quantity,
           })
           .where(eq(AvailableItemTable.id, orderItem.availableItemId));
       })

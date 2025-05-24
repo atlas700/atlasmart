@@ -44,7 +44,7 @@ export const sendVerificationEmail = async ({
       from,
       to: email,
       subject: "Confirm your email",
-      html: await await VerificationEmailHtml({
+      html: await VerificationEmailHtml({
         href: confirmLink,
         buttonText: "Verify Email",
       }),
